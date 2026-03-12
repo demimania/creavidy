@@ -174,53 +174,70 @@ export function VideoSummaryPanel() {
           </div>
         </SummaryDropdown>
 
-        {/* Characters */}
-        <SummaryDropdown
-          label="Character"
-          value={
-            summary.characters.length > 0
-              ? `${summary.characters.length} character${summary.characters.length > 1 ? 's' : ''}`
-              : 'No characters'
-          }
-          popupId="characters"
-        >
-          <div className="space-y-2">
-            {/* Character list */}
-            {summary.characters.length > 0 ? (
-              <div className="space-y-1.5 mb-2">
-                {summary.characters.map(c => (
-                  <div
-                    key={c.id}
-                    className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/5"
-                  >
-                    <div className="w-5 h-5 rounded-full bg-gradient-to-br from-pink-400 to-orange-400 flex items-center justify-center text-[8px] text-white font-bold flex-shrink-0">
-                      {c.name.charAt(0)}
-                    </div>
-                    <span className="text-xs text-white flex-1">{c.name}</span>
-                    <button
-                      onClick={() => handleRemoveCharacter(c.id)}
-                      className="w-4 h-4 rounded flex items-center justify-center hover:bg-white/10 transition-colors"
-                    >
-                      <X className="w-3 h-3 text-zinc-500" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-zinc-500 text-center py-2">No characters found.</p>
-            )}
+        {/* Characters - Accordion Style */}
+        <div>
+          <button
+            onClick={() => setActivePopup(activePopup === 'characters' ? null : 'characters')}
+            className="flex items-center gap-2 w-full text-left group py-1.5"
+          >
+            <span className="text-xs text-zinc-500 min-w-[80px]">Character</span>
+            <span className="flex items-center gap-1.5 text-sm text-white font-medium">
+              {summary.characters.length > 0
+                ? `${summary.characters.length} character${summary.characters.length > 1 ? 's' : ''}`
+                : 'No characters'}
+              <ChevronDown className={`w-3 h-3 text-zinc-500 transition-transform ${activePopup === 'characters' ? 'rotate-180' : ''}`} />
+            </span>
+          </button>
 
-            {/* Add character input */}
-            <input
-              type="text"
-              placeholder="Add character (Type & Enter)"
-              value={newCharacterName}
-              onChange={(e) => setNewCharacterName(e.target.value)}
-              onKeyDown={handleAddCharacter}
-              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-xs text-white placeholder:text-zinc-600 outline-none focus:border-[#0ea5e9]/40 transition-colors"
-            />
-          </div>
-        </SummaryDropdown>
+          <AnimatePresence>
+            {activePopup === 'characters' && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="pl-[92px] pr-2 pt-2 pb-3 space-y-2">
+                  {/* Character list */}
+                  {summary.characters.length > 0 ? (
+                    <div className="space-y-1.5 mb-2">
+                      {summary.characters.map(c => (
+                        <div
+                          key={c.id}
+                          className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/5"
+                        >
+                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-pink-400 to-orange-400 flex items-center justify-center text-[8px] text-white font-bold flex-shrink-0">
+                            {c.name.charAt(0)}
+                          </div>
+                          <span className="text-xs text-white flex-1">{c.name}</span>
+                          <button
+                            onClick={() => handleRemoveCharacter(c.id)}
+                            className="w-4 h-4 rounded flex items-center justify-center hover:bg-white/10 transition-colors"
+                          >
+                            <X className="w-3 h-3 text-zinc-500" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-zinc-500 text-center py-2">No characters found.</p>
+                  )}
+
+                  {/* Add character input */}
+                  <input
+                    type="text"
+                    placeholder="Add character (Type & Enter)"
+                    value={newCharacterName}
+                    onChange={(e) => setNewCharacterName(e.target.value)}
+                    onKeyDown={handleAddCharacter}
+                    className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-xs text-white placeholder:text-zinc-600 outline-none focus:border-[#0ea5e9]/40 transition-colors"
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Music */}
         <SummaryDropdown

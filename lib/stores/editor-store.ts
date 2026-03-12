@@ -62,7 +62,7 @@ export interface GenerationProgress {
 
 // ── Popup states ────────────────────────────────────────────────────────────
 
-export type ActivePopup = null | 'style' | 'narrator' | 'sceneMedia' | 'duration' | 'aspectRatio' | 'platform' | 'music'
+export type ActivePopup = null | 'style' | 'narrator' | 'characters' | 'sceneMedia' | 'duration' | 'aspectRatio' | 'platform' | 'music'
 
 // ── Scene action menu ───────────────────────────────────────────────────────
 
