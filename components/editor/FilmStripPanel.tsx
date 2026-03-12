@@ -20,8 +20,13 @@ function SceneCard({ sceneId }: { sceneId: string }) {
     setSceneActionMenu(null)
     if (action === 'delete') {
       removeScene(sceneId)
+    } else if (action === 'replace') {
+      const actions = (window as any).__editorActions
+      if (actions?.regenerateSceneImage) {
+        actions.regenerateSceneImage(sceneId)
+      }
     }
-    // replace and cut will be handled by media generation flow
+    // cut will be handled later
   }
 
   return (

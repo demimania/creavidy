@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Music, Image as ImageIcon, Film } from 'lucide-react'
+import { ChevronDown, Music, Image as ImageIcon, Film, Sparkles } from 'lucide-react'
 import {
   useEditorStore,
   VISUAL_STYLES,
@@ -263,6 +263,25 @@ export function VideoSummaryPanel() {
         <div className="text-xs text-zinc-400 leading-relaxed max-h-[300px] overflow-y-auto pr-1">
           {summary.script || <span className="text-zinc-600 italic">Script will appear here after generation...</span>}
         </div>
+      </div>
+
+      {/* Generate Media Button */}
+      <div className="px-4 py-3 border-t border-white/10">
+        <button
+          onClick={() => {
+            const actions = (window as any).__editorActions
+            if (actions?.generateMediaForScenes) {
+              actions.generateMediaForScenes()
+            }
+          }}
+          className="w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0ea5e9] to-[#0c96d4] text-white text-sm font-semibold hover:from-[#0c96d4] hover:to-[#0a7fb8] transition-all shadow-lg shadow-[#0ea5e9]/20 flex items-center justify-center gap-2"
+        >
+          <Sparkles className="w-4 h-4" />
+          Generate All Media
+        </button>
+        <p className="text-[10px] text-zinc-600 text-center mt-2">
+          Generates images and narration for all scenes
+        </p>
       </div>
     </div>
   )
