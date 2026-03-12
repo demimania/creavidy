@@ -174,7 +174,7 @@ export function VideoSummaryPanel() {
           </div>
         </SummaryDropdown>
 
-        {/* Characters - Accordion Style */}
+        {/* Characters - Accordion Style (Updated: 2025-01-11) */}
         <div>
           <button
             onClick={() => setActivePopup(activePopup === 'characters' ? null : 'characters')}
