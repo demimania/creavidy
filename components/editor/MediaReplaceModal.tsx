@@ -33,8 +33,11 @@ export function MediaReplaceModal({ sceneId, onClose }: MediaReplaceModalProps) 
   ]
 
   const handleGenerate = () => {
-    // Will call AI generation API
-    updateScene(sceneId, { status: 'generating' })
+    // Call the editor's regenerateSceneImage function
+    const actions = (window as any).__editorActions
+    if (actions?.regenerateSceneImage) {
+      actions.regenerateSceneImage(sceneId)
+    }
     onClose()
   }
 

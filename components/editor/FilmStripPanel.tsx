@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   MoreHorizontal, RefreshCw, Scissors, Trash2, GripVertical,
-  Sparkles, Music, CheckCircle2
+  Sparkles, Music, Download, Edit3, Grid3x3
 } from 'lucide-react'
 import { useEditorStore } from '@/lib/stores/editor-store'
 
@@ -53,9 +53,11 @@ function SceneCard({ sceneId }: { sceneId: string }) {
           <div className="flex items-center gap-2 mb-1.5">
             <span className="text-[10px] text-zinc-500 font-mono">{scene.timestamp}</span>
             <div className="flex items-center gap-1">
-              <div className="w-4 h-4 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-[7px] text-white font-bold">
-                {scene.narratorName.charAt(0)}
-              </div>
+              <img
+                src={`https://api.dicebear.com/9.x/avataaars/svg?seed=${scene.narratorName}`}
+                alt={scene.narratorName}
+                className="w-4 h-4 rounded-full"
+              />
               <span className="text-[10px] text-zinc-400">{scene.narratorName}</span>
             </div>
           </div>
@@ -76,7 +78,7 @@ function SceneCard({ sceneId }: { sceneId: string }) {
             </div>
           )}
           {/* Duration badge */}
-          <span className="absolute bottom-0.5 left-0.5 text-[8px] text-white bg-black/60 px-1 rounded">
+          <span className="absolute bottom-0.5 right-0.5 text-[8px] text-white bg-black/60 px-1 rounded">
             0:{String(scene.duration).padStart(2, '0')}
           </span>
 
@@ -147,14 +149,41 @@ export function FilmStripPanel() {
       onClick={() => setSceneActionMenu(null)}
     >
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10 flex-shrink-0">
-        <span className="text-sm font-semibold text-white">Film Strip 1</span>
-        <button className="w-6 h-6 rounded-md bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
-            <rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
-          </svg>
-        </button>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-white">Film Strip 1</span>
+        </div>
+
+        {/* Top Actions */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              const actions = (window as any).__editorActions
+              if (actions?.setShowExport) actions.setShowExport(true)
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0ea5e9] text-white text-xs font-medium hover:bg-[#0c96d4] transition-colors"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Export
+          </button>
+          <button className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-xs font-medium hover:bg-white/10 transition-colors">
+            <Edit3 className="w-3.5 h-3.5 inline mr-1" />
+            Edit more
+          </button>
+          <button
+            onClick={() => {
+              const actions = (window as any).__editorActions
+              if (actions?.setShowMusic) actions.setShowMusic(true)
+            }}
+            className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-xs font-medium hover:bg-white/10 transition-colors"
+          >
+            <Music className="w-3.5 h-3.5 inline mr-1" />
+            Add music
+          </button>
+          <button className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors" title="Elements">
+            <Grid3x3 className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* Progress bar */}
@@ -202,25 +231,42 @@ export function FilmStripPanel() {
         )}
       </div>
 
-      {/* Bottom Actions */}
+      {/* Bottom: Timeline Graph */}
       {scenes.length > 0 && (
-        <div className="flex items-center justify-center gap-2 px-4 py-3 border-t border-white/10">
-          <button className="px-4 py-2 rounded-xl bg-[#0ea5e9] text-white text-xs font-semibold hover:bg-[#0c96d4] transition-colors">
-            Export
-          </button>
-          <button className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-medium hover:bg-white/10 transition-colors">
-            Edit More
-          </button>
-          <div className="w-px h-5 bg-white/10 mx-1" />
-          <button className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors" title="Duplicate">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        <div className="flex-shrink-0 px-4 py-3 border-t border-white/10">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] text-zinc-500">Timeline</span>
+            <span className="text-[10px] text-zinc-500">Scenes {scenes.length}</span>
+          </div>
+          <div className="relative h-16 rounded-lg bg-black/30 border border-white/5 overflow-hidden">
+            {/* Simple timeline visualization */}
+            <svg className="w-full h-full" viewBox="0 0 400 60" preserveAspectRatio="none">
+              {/* Curve path */}
+              <path
+                d="M 0 40 Q 100 20, 200 30 T 400 25"
+                stroke="rgba(14, 165, 233, 0.3)"
+                strokeWidth="2"
+                fill="none"
+                strokeDasharray="4 4"
+              />
+              {/* Scene dots */}
+              {scenes.map((scene, i) => {
+                const x = (i / (scenes.length - 1 || 1)) * 380 + 10
+                const y = 30 + Math.sin(i * 0.5) * 10
+                return (
+                  <circle
+                    key={scene.id}
+                    cx={x}
+                    cy={y}
+                    r="4"
+                    fill={scene.status === 'ready' ? '#10b981' : scene.status === 'generating' ? '#f59e0b' : '#6b7280'}
+                    stroke="rgba(255,255,255,0.2)"
+                    strokeWidth="1"
+                  />
+                )
+              })}
             </svg>
-          </button>
-          <button className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-red-400 transition-colors" title="Delete">
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+          </div>
         </div>
       )}
     </div>
