@@ -45,5 +45,23 @@ API_KEYS.md
 *.mp4
 TEST_CREDENTIALS.md
 scripts/check_apify.ts
-.DS_Store
 backup_old_mvp/
+
+# Agent/Claude files (not part of app)
+.agent/
+.claude/
+agents/
+.agentignore
+CLAUDE.md
+
+# Expo files (not needed in Next.js)
+.expo/
+expo-env.d.ts
+
+# Temp files
+supabase/.temp/
+
+# Debug scripts
+scripts/debug_*.ts
+scripts/test_*.ts
+scripts/check_*.ts
