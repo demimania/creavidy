@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { useWorkspaceStore, type NodeData, type VideoBriefConfig, type FilmStripConfig } from '@/lib/stores/workspace-store'
 import { toast } from 'sonner'
+import { CharacterSection } from '@/components/ui/character-section'
 
 const XIcon = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true" className="w-3.5 h-3.5 fill-current"><g><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 22.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></g></svg>
@@ -450,106 +451,29 @@ export const VideoBriefNodeContent = memo(({ id, data, selected }: NodeProps<Nod
                   </AnimatePresence>
                 </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-zinc-400 w-24">Character</span>
-                <div className="flex-1 relative group">
-                  {(() => {
-                    const characterNames = config.character ? config.character.split(',').map(c => c.trim()).filter(Boolean) : [];
-                    const charImages = (config as any).characterImageUrls || {}; // Record<string, string>
-                    return (
-                      <>
-                        <button {...dropdownButtonProps('character')}>
-                          <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
-                            {characterNames.length > 0 ? (
-                              characterNames.map(name => (
-                                charImages[name] ? (
-                                  <img key={name} src={charImages[name]} className="w-5 h-5 rounded-full object-cover shrink-0" title={name} />
-                                ) : (
-                                  <span key={name} className="flex shrink-0 items-center justify-center text-[10px] bg-white/10 px-1.5 py-0.5 rounded-md truncate max-w-[80px]" title={name}>👤 {name}</span>
-                                )
-                              ))
-                            ) : (
-                              <span className="text-zinc-500">No characters</span>
-                            )}
-                          </div>
-                          <ChevronDown className="w-3 h-3 text-zinc-500 shrink-0" />
-                        </button>
-
-                        <AnimatePresence>
-                          {openDropdown === 'character' && (
-                            <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="absolute z-50 top-full mt-1 right-0 w-64 bg-[#1a0d2e] border border-white/10 rounded-xl shadow-2xl p-2 origin-top-right flex flex-col gap-3">
-                              {characterNames.map((name) => (
-                                <div key={name} className="flex gap-3 items-center">
-                                  <div className="shrink-0">
-                                    {charImages[name] ? (
-                                      <img src={charImages[name]} alt={name} className="w-16 h-16 object-cover rounded-lg border border-white/10" />
-                                    ) : (
-                                      <div className="w-16 h-16 rounded-lg border border-dashed border-white/20 bg-black/20 flex flex-col items-center justify-center gap-1 text-zinc-600">
-                                        <ImageIcon className="w-5 h-5" />
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="flex-1 flex flex-col gap-1.5 min-w-0">
-                                    <span className="text-xs text-white font-medium truncate" title={name}>{name}</span>
-                                    <div className="flex gap-1.5">
-                                      <button
-                                        onClick={async (e) => {
-                                          e.stopPropagation()
-                                          try {
-                                            const prompt = `${name}, ${config.visualStyle || 'cartoon 3D'} style, character portrait, white background, high quality`
-                                            const res = await fetch('/api/generate/image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'flux-schnell', prompt }) })
-                                            const d = await res.json()
-                                            if (d.imageUrl) {
-                                               updateNodeConfig(id, { characterImageUrls: { ...charImages, [name]: d.imageUrl } } as any)
-                                               setOpenDropdown(null)
-                                            }
-                                          } catch { toast.error('Character generation failed') }
-                                        }}
-                                        className="flex-1 py-1 bg-[#D1FE17]/10 hover:bg-[#D1FE17]/20 text-[#D1FE17] text-[9px] font-bold rounded flex items-center justify-center gap-1 transition-colors border border-[#D1FE17]/20"
-                                      >
-                                        <Zap className="w-2.5 h-2.5" /> Gen
-                                      </button>
-                                      <label className="flex-1 py-1 bg-white/5 hover:bg-white/10 text-white text-[9px] font-bold rounded flex items-center justify-center gap-1 transition-colors cursor-pointer border border-white/10">
-                                        <RefreshCw className="w-2.5 h-2.5" /> Upload
-                                        <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                                          const file = e.target.files?.[0]
-                                          if (file) {
-                                             updateNodeConfig(id, { characterImageUrls: { ...charImages, [name]: URL.createObjectURL(file) } } as any)
-                                             setOpenDropdown(null)
-                                          }
-                                        }} />
-                                      </label>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                              {characterNames.length === 0 && <span className="text-xs text-zinc-500 text-center py-2">No characters found.</span>}
-                              <div className="flex gap-2 items-center mt-1 border-t border-white/10 pt-3">
-                                <input 
-                                  type="text" 
-                                  placeholder="Add character (Type & Enter)" 
-                                  className="flex-1 bg-black/20 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-white outline-none focus:border-[#D1FE17]/50"
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      e.preventDefault();
-                                      const val = e.currentTarget.value.trim();
-                                      if (val && !characterNames.includes(val)) {
-                                        const newChar = config.character ? `${config.character}, ${val}` : val;
-                                        updateNodeConfig(id, { character: newChar } as any);
-                                        e.currentTarget.value = '';
-                                      }
-                                    }
-                                  }}
-                                />
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </>
-                    )
-                  })()}
-                </div>
-              </div>
+              <CharacterSection
+                characterNames={config.character ? config.character.split(',').map(c => c.trim()).filter(Boolean) : []}
+                characterImages={(config as any).characterImageUrls || {}}
+                onUpload={(name, file) => {
+                  const charImages = (config as any).characterImageUrls || {};
+                  updateNodeConfig(id, { characterImageUrls: { ...charImages, [name]: URL.createObjectURL(file) } } as any);
+                }}
+                onGenerate={async (name) => {
+                  try {
+                    const charImages = (config as any).characterImageUrls || {};
+                    const prompt = `${name}, ${config.visualStyle || 'cartoon 3D'} style, character portrait, white background, high quality`;
+                    const res = await fetch('/api/generate/image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'flux-schnell', prompt }) });
+                    const d = await res.json();
+                    if (d.imageUrl) {
+                      updateNodeConfig(id, { characterImageUrls: { ...charImages, [name]: d.imageUrl } } as any);
+                    }
+                  } catch { toast.error('Character generation failed') }
+                }}
+                onAddCharacter={(name) => {
+                  const newChar = config.character ? `${config.character}, ${name}` : name;
+                  updateNodeConfig(id, { character: newChar } as any);
+                }}
+              />
               <div className="flex items-center justify-between">
                 <span className="text-[11px] text-zinc-400 w-24">Music</span>
                 <div className="flex-1 relative">
