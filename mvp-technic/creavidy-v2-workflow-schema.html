@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creavidy v2 — Workflow Şeması</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+  :root {
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #12121a;
+    --bg-card: #1a1a26;
+    --bg-card-hover: #22223a;
+    --border: #2a2a3e;
+    --border-active: #6c5ce7;
+    --text-primary: #e8e8f0;
+    --text-secondary: #8888a0;
+    --text-dim: #55556a;
+    --accent-purple: #6c5ce7;
+    --accent-blue: #0984e3;
+    --accent-green: #00b894;
+    --accent-orange: #e17055;
+    --accent-pink: #fd79a8;
+    --accent-yellow: #fdcb6e;
+    --accent-red: #d63031;
+    --accent-cyan: #00cec9;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .bg-grid {
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(108,92,231,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(108,92,231,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .bg-glow {
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(150px);
+    opacity: 0.08;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .bg-glow-1 { top: -200px; left: -200px; background: var(--accent-purple); }
+  .bg-glow-2 { bottom: -200px; right: -200px; background: var(--accent-blue); }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: rgba(108,92,231,0.12);
+    border: 1px solid rgba(108,92,231,0.25);
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent-purple);
+    margin-bottom: 20px;
+  }
+
+  .header h1 {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1.15;
+    background: linear-gradient(135deg, #fff 0%, #a8a0f0 50%, #6c5ce7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header p {
+    margin-top: 12px;
+    color: var(--text-secondary);
+    font-size: 16px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Tab Navigation */
+  .tab-nav {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 36px;
+    padding: 4px;
+    background: var(--bg-secondary);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .tab-btn {
+    padding: 10px 20px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+  }
+
+  .tab-btn:hover {
+    color: var(--text-primary);
+    background: rgba(108,92,231,0.08);
+  }
+
+  .tab-btn.active {
+    background: var(--accent-purple);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(108,92,231,0.3);
+  }
+
+  /* Tab Content */
+  .tab-content {
+    display: none;
+    animation: fadeIn 0.35s ease;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Mermaid Container */
+  .mermaid-wrapper {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    overflow-x: auto;
+    margin-bottom: 24px;
+  }
+
+  .mermaid-wrapper .mermaid {
+    display: flex;
+    justify-content: center;
+  }
+
+  .mermaid-wrapper svg {
+    max-width: 100%;
+    height: auto !important;
+  }
+
+  /* Description Cards */
+  .flow-description {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .flow-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.25s ease;
+  }
+
+  .flow-card:hover {
+    border-color: var(--border-active);
+    background: var(--bg-card-hover);
+    transform: translateY(-2px);
+  }
+
+  .flow-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .flow-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .flow-card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .flow-card-body {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .flow-card-body code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: rgba(108,92,231,0.12);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent-purple);
+  }
+
+  /* Color variants for cards */
+  .fc-purple .flow-card-icon { background: rgba(108,92,231,0.15); color: var(--accent-purple); }
+  .fc-blue .flow-card-icon { background: rgba(9,132,227,0.15); color: var(--accent-blue); }
+  .fc-green .flow-card-icon { background: rgba(0,184,148,0.15); color: var(--accent-green); }
+  .fc-orange .flow-card-icon { background: rgba(225,112,85,0.15); color: var(--accent-orange); }
+  .fc-pink .flow-card-icon { background: rgba(253,121,168,0.15); color: var(--accent-pink); }
+  .fc-cyan .flow-card-icon { background: rgba(0,206,201,0.15); color: var(--accent-cyan); }
+  .fc-yellow .flow-card-icon { background: rgba(253,203,110,0.15); color: var(--accent-yellow); }
+  .fc-red .flow-card-icon { background: rgba(214,48,49,0.15); color: var(--accent-red); }
+
+  /* Cost summary */
+  .cost-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-top: 24px;
+  }
+  .cost-bar-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .cost-bar-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent-green);
+  }
+  .cost-bar-note {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-left: auto;
+  }
+
+  /* Section title */
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    padding-left: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+
+<div class="container">
+  <div class="header">
+    <div class="header-badge">⚡ System Architecture</div>
+    <h1>Creavidy v2 Workflow Şeması</h1>
+    <p>YouTube Members-Only AI Video Response Platform — Tüm sistem akışları ve teknik workflow'lar</p>
+  </div>
+
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="master">🏗 Üst Düzey Mimari</button>
+    <button class="tab-btn" data-tab="wf1">🎬 WF1: Üye Algılama</button>
+    <button class="tab-btn" data-tab="wf2">💬 WF2: Yorum Tarama</button>
+    <button class="tab-btn" data-tab="wf3">📤 WF3: Onay & Gönderim</button>
+    <button class="tab-btn" data-tab="onboard">🚀 Onboarding</button>
+    <button class="tab-btn" data-tab="error">🛡 Hata Yönetimi</button>
+  </nav>
+
+  <!-- TAB: Master Architecture -->
+  <div class="tab-content active" id="tab-master">
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+graph TB
+    subgraph YOUTUBE["☁️ YOUTUBE PLATFORM"]
+        direction TB
+        YT_API["📡 YouTube Data API v3"]
+        YT_COMMENTS["💬 Comments API"]
+        YT_MEMBERS["👥 Members API"]
+        YT_OAUTH["🔐 OAuth 2.0"]
+        YT_UPLOAD["📤 Upload / Insert"]
+    end
+
+    subgraph N8N["⚡ n8n ORCHESTRATOR"]
+        direction TB
+        WF1["🎬 WF1: Üye Algılama<br/>Cron: 15dk"]
+        WF2["💬 WF2: Yorum Tarama<br/>Cron: 10dk"]
+        WF3["📤 WF3: Onay Gönderim<br/>Realtime Trigger"]
+        WF4["📊 WF4: Analitik<br/>Cron: Günlük"]
+    end
+
+    subgraph AI["🧠 AI SERVICES"]
+        direction TB
+        GPT["🤖 GPT-4o-mini<br/>Senaryo + Sınıflandırma"]
+        MOD["🛡️ Moderation API<br/>Güvenlik Kontrol"]
+        ELEVEN["🎙️ ElevenLabs<br/>Ses Klonlama + TTS"]
+        HEYGEN["🎭 HeyGen API<br/>Avatar Video Üretimi"]
+    end
+
+    subgraph SUPA["🗄️ SUPABASE"]
+        direction TB
+        DB[("PostgreSQL<br/>creators, members<br/>comments, videos")]
+        AUTH["🔑 Auth<br/>Google OAuth"]
+        STORE["📦 Storage<br/>Video Dosyaları"]
+        RT["⚡ Realtime<br/>Live Updates"]
+        EDGE["λ Edge Functions"]
+    end
+
+    subgraph FRONT["🖥️ CREATOR DASHBOARD"]
+        direction TB
+        DASH["📊 Dashboard"]
+        QUEUE["👆 Onay Kuyruğu<br/>Tinder-Style Swipe"]
+        PROFILE["👤 Üye Profilleri"]
+        SETTINGS["⚙️ Ayarlar"]
+    end
+
+    YT_API --> N8N
+    N8N --> AI
+    AI --> N8N
+    N8N <--> SUPA
+    SUPA <--> FRONT
+    N8N --> YT_UPLOAD
+    AUTH --> YT_OAUTH
+
+    classDef youtube fill:#ff0000,stroke:#cc0000,color:#fff,stroke-width:2px
+    classDef n8n fill:#ff6d00,stroke:#e65100,color:#fff,stroke-width:2px
+    classDef ai fill:#6c5ce7,stroke:#5a4bd1,color:#fff,stroke-width:2px
+    classDef supa fill:#3ecf8e,stroke:#2bb573,color:#000,stroke-width:2px
+    classDef front fill:#0984e3,stroke:#0770c2,color:#fff,stroke-width:2px
+
+    class YOUTUBE youtube
+    class N8N n8n
+    class AI ai
+    class SUPA supa
+    class FRONT front
+      </div>
+    </div>
+
+    <div class="section-title">Sistem Bileşenleri</div>
+    <div class="flow-description">
+      <div class="flow-card fc-red">
+        <div class="flow-card-header"><div class="flow-card-icon">📡</div><div class="flow-card-title">YouTube Platform</div></div>
+        <div class="flow-card-body">Veri kaynağı ve dağıtım kanalı. Comments API ile yorumlar çekilir, Members API ile üyeler kontrol edilir, Comments.insert ile video yanıtlar gönderilir. Günlük <code>10.000 ünite</code> kota.</div>
+      </div>
+      <div class="flow-card fc-orange">
+        <div class="flow-card-header"><div class="flow-card-icon">⚡</div><div class="flow-card-title">n8n Orchestrator</div></div>
+        <div class="flow-card-body">Tüm otomasyonu yöneten merkez beyin. 4 ana workflow çalıştırır: Üye algılama (15dk), Yorum tarama (10dk), Onay gönderim (realtime), Analitik toplama (günlük). Self-hosted Docker.</div>
+      </div>
+      <div class="flow-card fc-purple">
+        <div class="flow-card-header"><div class="flow-card-icon">🧠</div><div class="flow-card-title">AI Services</div></div>
+        <div class="flow-card-body">GPT-4o-mini senaryo üretir (<code>~$0.90/ay</code>). ElevenLabs ses klonlar (<code>$22/ay</code>). HeyGen video üretir (<code>$89/ay</code>). OpenAI Moderation güvenlik kontrol eder (ücretsiz).</div>
+      </div>
+      <div class="flow-card fc-green">
+        <div class="flow-card-header"><div class="flow-card-icon">🗄️</div><div class="flow-card-title">Supabase</div></div>
+        <div class="flow-card-body">PostgreSQL veritabanı (6 tablo), Auth (Google OAuth + YouTube OAuth), Storage (video dosyaları), Realtime (canlı dashboard güncellemeleri), Edge Functions. <code>RLS</code> ile veri izolasyonu.</div>
+      </div>
+      <div class="flow-card fc-blue">
+        <div class="flow-card-header"><div class="flow-card-icon">🖥️</div><div class="flow-card-title">Creator Dashboard</div></div>
+        <div class="flow-card-body">Next.js 15 + shadcn/ui. Tinder-style swipe onay kuyruğu, üye profilleri, analitik dashboard, ayarlar. Vercel'de deploy. Cursor IDE ile geliştirme.</div>
+      </div>
+      <div class="flow-card fc-yellow">
+        <div class="flow-card-header"><div class="flow-card-icon">💰</div><div class="flow-card-title">Maliyet Özeti</div></div>
+        <div class="flow-card-body">Toplam MVP: <code>$113-158/ay</code>. HeyGen $89 + ElevenLabs $22 + OpenAI $1 + Hosting $0-25 + Supabase $0-25. Breakeven: <code>3 ödeyen creator</code>.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: WF1 Üye Algılama -->
+  <div class="tab-content" id="tab-wf1">
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+flowchart TD
+    START(["⏰ CRON: Her 15 Dakika"]) --> FETCH_CREATORS["📋 Aktif Creator'ları Çek<br/><i>Supabase: SELECT * FROM creators<br/>WHERE is_active = true</i>"]
+    
+    FETCH_CREATORS --> LOOP["🔄 Her Creator İçin Döngü"]
+    
+    LOOP --> YT_MEMBERS["📡 YouTube API<br/><code>members.list</code><br/><i>Kota: 1 ünite/istek</i>"]
+    
+    YT_MEMBERS --> COMPARE["🔍 Supabase ile Karşılaştır<br/><i>Mevcut üyeleri filtrele<br/>welcome_video_sent = false</i>"]
+    
+    COMPARE --> CHECK{{"🆕 Yeni Üye<br/>Var mı?"}}
+    
+    CHECK -->|"HAYIR"| NEXT["➡️ Sonraki Creator"]
+    CHECK -->|"EVET"| INSERT_MEMBER["💾 Supabase INSERT<br/><code>members</code> tablosu<br/><i>youtube_display_name<br/>member_since, tier_level</i>"]
+    
+    INSERT_MEMBER --> SCRIPT["🤖 GPT-4o-mini API<br/><b>Senaryo Üretimi</b><br/><i>System: Creator persona<br/>User: Üye adı + bilgileri<br/>Çıktı: 40-80 kelime (5-10sn)</i>"]
+    
+    SCRIPT --> MODERATE{{"🛡️ Moderasyon<br/>Güvenli mi?"}}
+    
+    MODERATE -->|"❌ GÜVENSİZ"| LOG_SKIP["⚠️ Log + Atla<br/><i>analytics_events'e kaydet</i>"]
+    MODERATE -->|"✅ GÜVENLİ"| TTS["🎙️ ElevenLabs TTS<br/><code>text-to-speech/{voice_id}</code><br/><i>model: eleven_multilingual_v2<br/>Çıktı: audio.mp3 (5-10sn)</i>"]
+    
+    TTS --> VIDEO["🎭 HeyGen API<br/><code>/v2/video/generate</code><br/><i>avatar_id + audio_url<br/>720x1280 (9:16)<br/>Süre: 60-120sn</i>"]
+    
+    VIDEO --> POLL["⏳ Polling Loop<br/><code>/v1/video_status.get</code><br/><i>Her 10sn kontrol<br/>Max 5dk timeout</i>"]
+    
+    POLL --> POLL_CHECK{{"Video<br/>Hazır mı?"}}
+    POLL_CHECK -->|"pending/processing"| POLL
+    POLL_CHECK -->|"failed"| ERROR["❌ Hata Yönetimi<br/><i>3 retry, sonra metin fallback</i>"]
+    POLL_CHECK -->|"completed ✅"| SAVE["💾 Supabase INSERT<br/><code>video_responses</code><br/><i>status: pending_approval<br/>type: welcome</i>"]
+    
+    SAVE --> NOTIFY["🔔 Bildirim Gönder<br/><i>'3 yeni hoş geldin videosu<br/>onayınızı bekliyor 🎬'</i>"]
+    
+    NOTIFY --> NEXT
+
+    style START fill:#ff6d00,stroke:#e65100,color:#fff
+    style CHECK fill:#fdcb6e,stroke:#f39c12,color:#000
+    style MODERATE fill:#6c5ce7,stroke:#5a4bd1,color:#fff
+    style POLL_CHECK fill:#fdcb6e,stroke:#f39c12,color:#000
+    style SAVE fill:#3ecf8e,stroke:#2bb573,color:#000
+    style NOTIFY fill:#0984e3,stroke:#0770c2,color:#fff
+    style ERROR fill:#d63031,stroke:#c0392b,color:#fff
+    style LOG_SKIP fill:#d63031,stroke:#c0392b,color:#fff
+    style SCRIPT fill:#6c5ce7,stroke:#5a4bd1,color:#fff
+    style TTS fill:#fd79a8,stroke:#e84393,color:#fff
+    style VIDEO fill:#e17055,stroke:#d35400,color:#fff
+      </div>
+    </div>
+
+    <div class="section-title">Adım Detayları — Workflow 1</div>
+    <div class="flow-description">
+      <div class="flow-card fc-orange">
+        <div class="flow-card-header"><div class="flow-card-icon">⏰</div><div class="flow-card-title">Tetikleyici</div></div>
+        <div class="flow-card-body">n8n Cron node, her <code>15 dakikada</code> bir çalışır. Gece saatlerinde (00:00-06:00) <code>30 dakikaya</code> düşürülür (kota tasarrufu).</div>
+      </div>
+      <div class="flow-card fc-blue">
+        <div class="flow-card-header"><div class="flow-card-icon">📡</div><div class="flow-card-title">YouTube Members API</div></div>
+        <div class="flow-card-body"><code>members.list</code> ile tüm aktif üyeleri çeker. Supabase'deki mevcut üyelerle karşılaştırılarak yeni üyeler tespit edilir. Kota: <code>1 ünite/istek</code>.</div>
+      </div>
+      <div class="flow-card fc-purple">
+        <div class="flow-card-header"><div class="flow-card-icon">🤖</div><div class="flow-card-title">Senaryo Üretimi</div></div>
+        <div class="flow-card-body">GPT-4o-mini, creator'ın persona prompt'u ve knowledge base'i ile kişiselleştirilmiş 40-80 kelimelik hoş geldin senaryosu üretir. <code>temperature: 0.8</code> ile doğal çeşitlilik sağlanır.</div>
+      </div>
+      <div class="flow-card fc-pink">
+        <div class="flow-card-header"><div class="flow-card-icon">🎙️</div><div class="flow-card-title">Ses Üretimi</div></div>
+        <div class="flow-card-body">ElevenLabs <code>eleven_multilingual_v2</code> modeli ile creator'ın klonlanmış sesi kullanılarak MP3 üretilir. Ortalama süre: <code>2-5 saniye</code> işlem.</div>
+      </div>
+      <div class="flow-card fc-orange">
+        <div class="flow-card-header"><div class="flow-card-icon">🎭</div><div class="flow-card-title">Video Üretimi</div></div>
+        <div class="flow-card-body">HeyGen API avatar + ses dosyasını birleştirerek <code>720x1280</code> (9:16) video üretir. Üretim süresi: <code>60-120 saniye</code>. 10sn aralıkla polling ile tamamlanma kontrol edilir.</div>
+      </div>
+      <div class="flow-card fc-green">
+        <div class="flow-card-header"><div class="flow-card-icon">💾</div><div class="flow-card-title">Kayıt & Bildirim</div></div>
+        <div class="flow-card-body">Video <code>video_responses</code> tablosuna <code>pending_approval</code> statüsüyle kaydedilir. Creator'a push bildirim + dashboard badge güncellenir.</div>
+      </div>
+    </div>
+
+    <div class="cost-bar">
+      <div class="cost-bar-label">WF1 Çalışma Süresi</div>
+      <div class="cost-bar-value">~3 dk / üye</div>
+      <div class="cost-bar-note">Senaryo: 2sn + TTS: 3sn + Video: 90sn + Polling: 30sn</div>
+    </div>
+  </div>
+
+  <!-- TAB: WF2 Yorum Tarama -->
+  <div class="tab-content" id="tab-wf2">
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+flowchart TD
+    START(["⏰ CRON: Her 10 Dakika"]) --> FETCH["📡 YouTube API<br/><code>commentThreads.list</code><br/><i>allThreadsRelatedToChannelId<br/>order: time, maxResults: 100</i>"]
+    
+    FETCH --> FILTER_MEMBER["🏷️ Üye Rozet Filtresi<br/><i>authorChannelId ile<br/>members tablosu karşılaştır</i>"]
+    
+    FILTER_MEMBER --> FILTER_NEW["🔍 Yeni Yorum Filtresi<br/><i>youtube_comment_id<br/>daha önce işlenmiş mi?</i>"]
+    
+    FILTER_NEW --> CLASSIFY["🤖 GPT-4o-mini<br/><b>Niyet Sınıflandırma</b><br/><i>intent: question|praise|complaint<br/>priority: 1-10<br/>sentiment: -1 to 1<br/>video_worthy: true|false</i>"]
+    
+    CLASSIFY --> SCORE["📊 Priority Scoring<br/><i>Üye süresi: +2<br/>Soru içeriyor: +3<br/>Negatif duygu: +2<br/>Uzun yorum: +1<br/>İlk yorum: +2</i>"]
+    
+    SCORE --> INSERT_COMMENT["💾 Supabase INSERT<br/><code>comments</code> tablosu"]
+    
+    INSERT_COMMENT --> DECISION{{"⚖️ Video Yanıt<br/>Gerekli mi?<br/><i>priority ≥ 7 AND<br/>video_worthy = true</i>"}}
+    
+    DECISION -->|"HAYIR<br/>priority < 7"| TEXT_DRAFT["📝 Metin Yanıt Taslağı<br/><i>Gelecek faz için<br/>kaydet</i>"]
+    
+    DECISION -->|"EVET<br/>priority ≥ 7"| SCRIPT["🤖 GPT-4o-mini<br/><b>Yanıt Senaryosu</b><br/><i>Yorum bağlamı +<br/>Üye profili +<br/>Creator persona</i>"]
+    
+    SCRIPT --> MOD{{"🛡️ Moderasyon"}}
+    MOD -->|"❌"| SKIP["⚠️ Atla"]
+    MOD -->|"✅"| PIPELINE["🎙️ → 🎭 TTS + Video<br/><i>WF1 ile aynı pipeline<br/>ElevenLabs → HeyGen</i>"]
+    
+    PIPELINE --> SAVE["💾 Supabase INSERT<br/><code>video_responses</code><br/><i>status: pending_approval<br/>type: reply<br/>comment_id: bağlı</i>"]
+    
+    SAVE --> NOTIFY["🔔 Bildirim"]
+
+    style START fill:#ff6d00,stroke:#e65100,color:#fff
+    style DECISION fill:#fdcb6e,stroke:#f39c12,color:#000
+    style MOD fill:#6c5ce7,stroke:#5a4bd1,color:#fff
+    style CLASSIFY fill:#6c5ce7,stroke:#5a4bd1,color:#fff
+    style SCORE fill:#00b894,stroke:#00a381,color:#fff
+    style SAVE fill:#3ecf8e,stroke:#2bb573,color:#000
+    style SKIP fill:#d63031,stroke:#c0392b,color:#fff
+    style PIPELINE fill:#e17055,stroke:#d35400,color:#fff
+    style TEXT_DRAFT fill:#636e72,stroke:#2d3436,color:#fff
+      </div>
+    </div>
+
+    <div class="section-title">Adım Detayları — Workflow 2</div>
+    <div class="flow-description">
+      <div class="flow-card fc-blue">
+        <div class="flow-card-header"><div class="flow-card-icon">💬</div><div class="flow-card-title">Yorum Çekme</div></div>
+        <div class="flow-card-body"><code>commentThreads.list</code> ile son yorumlar çekilir. <code>maxResults: 100</code> ile her sorguda 100 yorum. Üye rozeti kontrolü için <code>authorChannelId</code> ile members tablosu eşleştirilir.</div>
+      </div>
+      <div class="flow-card fc-purple">
+        <div class="flow-card-header"><div class="flow-card-icon">🧠</div><div class="flow-card-title">Niyet Sınıflandırma</div></div>
+        <div class="flow-card-body">GPT-4o-mini JSON formatında sınıflandırma yapar: <code>intent</code> (soru/övgü/şikayet), <code>priority</code> (1-10), <code>sentiment</code> (-1 to 1), <code>video_worthy</code> (true/false). <code>temperature: 0.1</code> ile tutarlılık.</div>
+      </div>
+      <div class="flow-card fc-green">
+        <div class="flow-card-header"><div class="flow-card-icon">📊</div><div class="flow-card-title">Öncelik Puanlama</div></div>
+        <div class="flow-card-body">n8n Code node ile hesaplama: Üyelik süresi (+2), soru içeriyor (+3), negatif duygu (+2), uzun yorum (+1), ilk yorum (+2). Toplam <code>≥7</code> ise video yanıt tetiklenir.</div>
+      </div>
+      <div class="flow-card fc-orange">
+        <div class="flow-card-header"><div class="flow-card-icon">⚖️</div><div class="flow-card-title">Karar Noktası</div></div>
+        <div class="flow-card-body"><code>priority ≥ 7 AND video_worthy = true</code> → Video yanıt pipeline'ı başlatılır. Aksi halde metin taslak olarak kaydedilir (gelecek fazda metin yanıt özelliği).</div>
+      </div>
+    </div>
+
+    <div class="cost-bar">
+      <div class="cost-bar-label">WF2 Günlük Kota</div>
+      <div class="cost-bar-value">~96 ünite</div>
+      <div class="cost-bar-note">144 polling (10dk) × 1 ünite = 144, üye filtresi sonrası ~96 etkin sorgu</div>
+    </div>
+  </div>
+
+  <!-- TAB: WF3 Onay & Gönderim -->
+  <div class="tab-content" id="tab-wf3">
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+flowchart TD
+    START(["👆 Creator Swipe: ONAYLA<br/><i>video_responses.status<br/>= 'approved'</i>"]) --> TRIGGER["⚡ Supabase Realtime<br/><b>Row Update Trigger</b><br/><i>status changed to 'approved'</i>"]
+    
+    TRIGGER --> JITTER["⏳ Jitter Delay<br/><b>Rastgele 5-30 dakika</b><br/><i>Math.random() × 25 + 5<br/>Bot algısı engelleme</i>"]
+    
+    JITTER --> TYPE_CHECK{{"📋 Video Tipi?"}}
+    
+    TYPE_CHECK -->|"🎉 WELCOME"| WELCOME_SEND["💬 YouTube API<br/><code>comments.insert</code><br/><i>'Hey {üye_adı}! 🎬<br/>Sana özel bir hoş geldin<br/>videosu hazırladım:<br/>{video_link}<br/>[AI-assisted]'</i>"]
+    
+    TYPE_CHECK -->|"💬 REPLY"| REPLY_SEND["💬 YouTube API<br/><code>comments.insert</code><br/><i>parentId: {orijinal_yorum_id}<br/>'Bu yorumun için özel<br/>bir video hazırladım! 🎬<br/>{video_link}<br/>[AI-assisted]'</i>"]
+    
+    WELCOME_SEND --> STATUS_UPDATE["💾 Supabase UPDATE<br/><code>video_responses</code><br/><i>status: 'sent'<br/>sent_at: NOW()<br/>youtube_reply_id: {id}</i>"]
+    
+    REPLY_SEND --> STATUS_UPDATE
+    
+    STATUS_UPDATE --> MEMBER_UPDATE["💾 Supabase UPDATE<br/><code>members</code><br/><i>welcome_video_sent: true<br/>last_video_sent_at: NOW()<br/>total_videos_received: +1</i>"]
+    
+    MEMBER_UPDATE --> ANALYTICS["📊 Analitik Log<br/><code>analytics_events</code><br/><i>event_type: 'video_sent'<br/>video_type, duration,<br/>member_tier</i>"]
+    
+    ANALYTICS --> QUOTA_CHECK{{"🔢 Günlük Kota<br/>Kontrolü"}}
+    
+    QUOTA_CHECK -->|"✅ Kota OK"| DONE["✅ Tamamlandı"]
+    QUOTA_CHECK -->|"⚠️ Kota %80+"| THROTTLE["🐢 Gönderim Hızını Düşür<br/><i>Jitter: 30-60dk'ya çıkar<br/>Creator'a bildirim</i>"]
+
+    style START fill:#0984e3,stroke:#0770c2,color:#fff
+    style TRIGGER fill:#3ecf8e,stroke:#2bb573,color:#000
+    style JITTER fill:#fdcb6e,stroke:#f39c12,color:#000
+    style TYPE_CHECK fill:#6c5ce7,stroke:#5a4bd1,color:#fff
+    style WELCOME_SEND fill:#ff0000,stroke:#cc0000,color:#fff
+    style REPLY_SEND fill:#ff0000,stroke:#cc0000,color:#fff
+    style STATUS_UPDATE fill:#3ecf8e,stroke:#2bb573,color:#000
+    style DONE fill:#00b894,stroke:#00a381,color:#fff
+    style THROTTLE fill:#e17055,stroke:#d35400,color:#fff
+      </div>
+    </div>
+
+    <div class="section-title">Adım Detayları — Workflow 3</div>
+    <div class="flow-description">
+      <div class="flow-card fc-cyan">
+        <div class="flow-card-header"><div class="flow-card-icon">⚡</div><div class="flow-card-title">Realtime Trigger</div></div>
+        <div class="flow-card-body">Supabase Realtime subscription ile <code>video_responses.status</code> değişimini dinler. Creator dashboard'dan swipe ile onay geldiğinde anında tetiklenir.</div>
+      </div>
+      <div class="flow-card fc-yellow">
+        <div class="flow-card-header"><div class="flow-card-icon">⏳</div><div class="flow-card-title">Jitter Delay</div></div>
+        <div class="flow-card-body">YouTube'un bot algılamasını engellemek için <code>5-30 dakika</code> rastgele bekleme. Formül: <code>Math.random() × 25 + 5</code>. Kota %80'i aşarsa <code>30-60dk'ya</code> çıkarılır.</div>
+      </div>
+      <div class="flow-card fc-red">
+        <div class="flow-card-header"><div class="flow-card-icon">📤</div><div class="flow-card-title">YouTube Gönderim</div></div>
+        <div class="flow-card-body"><code>comments.insert</code> ile yorum yanıtı gönderilir. Welcome videoları için topluluk postu veya yorum, Reply videoları için orijinal yoruma yanıt. <code>50 ünite/istek</code> kota maliyeti.</div>
+      </div>
+      <div class="flow-card fc-green">
+        <div class="flow-card-header"><div class="flow-card-icon">📊</div><div class="flow-card-title">Durum Güncelleme</div></div>
+        <div class="flow-card-body"><code>video_responses</code> → sent, <code>members</code> → welcome_video_sent + total_videos_received güncellenir. Analytics log'a tüm metrikler kaydedilir.</div>
+      </div>
+    </div>
+
+    <div class="cost-bar">
+      <div class="cost-bar-label">WF3 Kota Maliyeti</div>
+      <div class="cost-bar-value">50 ünite / gönderim</div>
+      <div class="cost-bar-note">Günde 50 video gönderim = 2.500 ünite (toplam kotanın %25'i)</div>
+    </div>
+  </div>
+
+  <!-- TAB: Onboarding -->
+  <div class="tab-content" id="tab-onboard">
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+flowchart TD
+    LAND["🌐 Landing Page<br/><i>creavidy.com</i>"] --> CTA["🟣 'Start Free Trial'<br/>Butonu"]
+    
+    CTA --> GAUTH["🔑 Supabase Auth<br/><b>Google OAuth</b><br/><i>Email + profil bilgisi</i>"]
+    
+    GAUTH --> DB_CREATE["💾 Supabase INSERT<br/><code>creators</code> tablosu<br/><i>email, full_name<br/>plan: starter</i>"]
+    
+    DB_CREATE --> STEP1["<b>ADIM 1: YouTube Bağla</b><br/>━━━━━━━━━━━━━━━━<br/>🔗 YouTube OAuth 2.0<br/><i>Scopes: youtube.readonly<br/>youtube.force-ssl</i>"]
+    
+    STEP1 --> YT_INFO["📡 YouTube API<br/><code>channels.list (mine=true)</code><br/><i>channel_id, name<br/>subscriber_count<br/>member_count</i>"]
+    
+    YT_INFO --> STEP2["<b>ADIM 2: Avatar Oluştur</b><br/>━━━━━━━━━━━━━━━━<br/>📷 Webcam ile 2dk kayıt<br/><i>VEYA video dosyası yükle</i>"]
+    
+    STEP2 --> HEYGEN["🎭 HeyGen API<br/><code>/v2/photo_avatar/create</code><br/><i>avatar_id alınır<br/>Süre: 2-5 dakika</i>"]
+    
+    HEYGEN --> PREVIEW1["👁️ Avatar Önizleme<br/><i>'Bu sizin dijital ikiziniz'<br/>5sn demo video</i>"]
+    
+    PREVIEW1 --> STEP3["<b>ADIM 3: Ses Klonla</b><br/>━━━━━━━━━━━━━━━━<br/>🎙️ Ses örneği yükle<br/><i>Min 1dk, ideal 3-5dk</i>"]
+    
+    STEP3 --> ELEVEN["🎙️ ElevenLabs API<br/><code>/v1/voices/add</code><br/><i>voice_id alınır<br/>Süre: 30 saniye</i>"]
+    
+    ELEVEN --> PREVIEW2["🔊 Ses Testi<br/><i>'Merhaba, ben senin<br/>AI ikizin!' dinletilir</i>"]
+    
+    PREVIEW2 --> STEP4["<b>ADIM 4: Persona Ayarla</b><br/>━━━━━━━━━━━━━━━━<br/>🎨 Ton Seçimi:<br/>Esprili | Samimi | Pro | Enerjik<br/>📚 Bilgi Bankası Yükle"]
+    
+    STEP4 --> TEST["🧪 Test Video Üret<br/><i>'Demo üyeye hoş geldin<br/>videosu oluştur' butonu</i>"]
+    
+    TEST --> COMPLETE["✅ Onboarding Tamamlandı<br/><code>onboarding_completed: true</code><br/><i>'Tebrikler! AI ikiziniz hazır.<br/>Dashboard'a yönlendir'</i>"]
+    
+    COMPLETE --> DASH["🖥️ Dashboard'a Git"]
+
+    style LAND fill:#1a1a2e,stroke:#6c5ce7,color:#fff
+    style CTA fill:#6c5ce7,stroke:#5a4bd1,color:#fff
+    style GAUTH fill:#4285f4,stroke:#3367d6,color:#fff
+    style STEP1 fill:#ff0000,stroke:#cc0000,color:#fff
+    style STEP2 fill:#e17055,stroke:#d35400,color:#fff
+    style STEP3 fill:#fd79a8,stroke:#e84393,color:#fff
+    style STEP4 fill:#00cec9,stroke:#00b5b1,color:#fff
+    style COMPLETE fill:#00b894,stroke:#00a381,color:#fff
+    style DASH fill:#0984e3,stroke:#0770c2,color:#fff
+      </div>
+    </div>
+
+    <div class="section-title">Onboarding Süresi: ~15 Dakika</div>
+    <div class="flow-description">
+      <div class="flow-card fc-blue">
+        <div class="flow-card-header"><div class="flow-card-icon">1️⃣</div><div class="flow-card-title">YouTube Bağla (2dk)</div></div>
+        <div class="flow-card-body">Google OAuth → YouTube OAuth 2.0. Kanal bilgileri otomatik çekilir: ad, abone sayısı, üye sayısı. Token'lar şifreli olarak Supabase'e kaydedilir.</div>
+      </div>
+      <div class="flow-card fc-orange">
+        <div class="flow-card-header"><div class="flow-card-icon">2️⃣</div><div class="flow-card-title">Avatar Oluştur (5dk)</div></div>
+        <div class="flow-card-body">Webcam ile 2dk video kaydı veya dosya yükleme. HeyGen Instant Avatar API ile dijital ikiz oluşturulur. 5sn önizleme videosu gösterilir.</div>
+      </div>
+      <div class="flow-card fc-pink">
+        <div class="flow-card-header"><div class="flow-card-icon">3️⃣</div><div class="flow-card-title">Ses Klonla (3dk)</div></div>
+        <div class="flow-card-body">Ses örneği yükleme (min 1dk). ElevenLabs Instant Voice Clone ile voice_id oluşturulur. Test cümlesi dinletilerek onay alınır.</div>
+      </div>
+      <div class="flow-card fc-cyan">
+        <div class="flow-card-header"><div class="flow-card-icon">4️⃣</div><div class="flow-card-title">Persona Ayarla (5dk)</div></div>
+        <div class="flow-card-body">Ton seçimi (4 opsiyon), bilgi bankası yükleme (SSS, ürünler), test video üretimi. Creator ilk çıktıyı görerek güven kazanır.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Error Handling -->
+  <div class="tab-content" id="tab-error">
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+flowchart TD
+    ERROR(["⚠️ HATA OLUŞTU"]) --> TYPE{{"Hata Kaynağı?"}}
+    
+    TYPE -->|"📡 YouTube API"| YT_ERR{{"HTTP Status?"}}
+    TYPE -->|"🎭 HeyGen"| HG_ERR{{"Hata Tipi?"}}
+    TYPE -->|"🎙️ ElevenLabs"| EL_ERR{{"Hata Tipi?"}}
+    TYPE -->|"🤖 OpenAI"| OAI_ERR{{"Hata Tipi?"}}
+    TYPE -->|"🗄️ Supabase"| SB_ERR{{"Hata Tipi?"}}
+    
+    YT_ERR -->|"401 Unauthorized"| YT_REFRESH["🔄 Token Refresh<br/><i>refresh_token ile<br/>yeni access_token al</i>"]
+    YT_REFRESH --> YT_REFRESH_CHECK{{"Başarılı?"}}
+    YT_REFRESH_CHECK -->|"✅"| RETRY["🔁 Tekrar Dene"]
+    YT_REFRESH_CHECK -->|"❌"| NOTIFY_REAUTH["📧 Creator'a Bildir<br/><i>'YouTube bağlantınızı<br/>yeniden yapın'</i>"]
+    
+    YT_ERR -->|"403 Quota"| QUEUE_NEXT["⏰ Sonraki Cron'a<br/>Ertele"]
+    YT_ERR -->|"5xx Server"| BACKOFF["📈 Exponential Backoff<br/><i>5s → 15s → 45s<br/>3 deneme</i>"]
+    
+    HG_ERR -->|"Generation Failed"| HG_RETRY["🔁 3x Retry<br/><i>Farklı background ile</i>"]
+    HG_ERR -->|"Timeout >5dk"| HG_CANCEL["❌ İptal + Yeniden<br/>Kuyruğa Al"]
+    HG_ERR -->|"Rate Limit"| HG_WAIT["⏳ 60sn Bekle<br/>+ Tekrar Dene"]
+    
+    EL_ERR -->|"Character Limit"| EL_UPGRADE["💳 Plan Upgrade<br/>Uyarısı"]
+    EL_ERR -->|"Voice Not Found"| EL_RECLONE["🎙️ Yeniden Klonlama<br/>İste"]
+    EL_ERR -->|"5xx Error"| EL_FALLBACK["🔄 Fallback: Edge TTS<br/><i>Ücretsiz ama<br/>kalite düşük</i>"]
+    
+    OAI_ERR -->|"Rate Limit"| OAI_WAIT["⏳ 10sn Bekle"]
+    OAI_ERR -->|"Content Filter"| OAI_REPHRASE["✍️ Prompt Değiştir<br/>+ Tekrar Üret"]
+    OAI_ERR -->|"5xx Error"| OAI_FALLBACK["🔄 Fallback:<br/>Claude Haiku"]
+    
+    SB_ERR -->|"Connection"| SB_RETRY["🔁 3x Retry"]
+    SB_ERR -->|"RLS Violation"| SB_LOG["📋 Loglama + Alert"]
+    SB_ERR -->|"Storage Full"| SB_ARCHIVE["🗃️ Eski Videoları<br/>Arşivle"]
+    
+    HG_RETRY --> ULTIMATE{{"Tüm Retry'lar<br/>Başarısız?"}}
+    BACKOFF --> ULTIMATE
+    HG_CANCEL --> ULTIMATE
+    
+    ULTIMATE -->|"✅ Çözüldü"| CONTINUE["▶️ Pipeline Devam"]
+    ULTIMATE -->|"❌ Çözülemedi"| FALLBACK_TEXT["📝 ULTIMATE FALLBACK<br/><b>Metin Yanıt Gönder</b><br/><i>'Hey {name}! Kanalıma<br/>üye olduğun için teşekkür<br/>ederim! 🎉'</i>"]
+
+    style ERROR fill:#d63031,stroke:#c0392b,color:#fff
+    style TYPE fill:#fdcb6e,stroke:#f39c12,color:#000
+    style FALLBACK_TEXT fill:#636e72,stroke:#2d3436,color:#fff
+    style CONTINUE fill:#00b894,stroke:#00a381,color:#fff
+    style ULTIMATE fill:#e17055,stroke:#d35400,color:#fff
+      </div>
+    </div>
+
+    <div class="section-title">Hata Yönetim Stratejisi</div>
+    <div class="flow-description">
+      <div class="flow-card fc-red">
+        <div class="flow-card-header"><div class="flow-card-icon">📡</div><div class="flow-card-title">YouTube Hataları</div></div>
+        <div class="flow-card-body"><code>401</code>: Token refresh akışı başlatılır, başarısızsa creator'a yeniden bağlanma bildirimi. <code>403</code>: Kota aşımı, sonraki cron'a ertelenir. <code>5xx</code>: Exponential backoff (5-15-45sn).</div>
+      </div>
+      <div class="flow-card fc-orange">
+        <div class="flow-card-header"><div class="flow-card-icon">🎭</div><div class="flow-card-title">HeyGen Hataları</div></div>
+        <div class="flow-card-body">Video üretim hatası: 3 retry (farklı arka plan). Timeout (>5dk): İptal + yeniden kuyruğa al. Rate limit: 60sn bekleme. En kritik hata noktası — video üretilemezse metin fallback devreye girer.</div>
+      </div>
+      <div class="flow-card fc-pink">
+        <div class="flow-card-header"><div class="flow-card-icon">🎙️</div><div class="flow-card-title">ElevenLabs Hataları</div></div>
+        <div class="flow-card-body">Karakter limiti: Plan upgrade uyarısı. Voice bulunamadı: Yeniden klonlama. 5xx hatası: <code>Edge TTS</code>'e fallback (ücretsiz ama kalite düşük, geçici çözüm).</div>
+      </div>
+      <div class="flow-card fc-purple">
+        <div class="flow-card-header"><div class="flow-card-icon">🤖</div><div class="flow-card-title">OpenAI Hataları</div></div>
+        <div class="flow-card-body">Rate limit: 10sn bekleme. Content filter: Farklı prompt ile tekrar. 5xx: <code>Claude Haiku</code>'ya fallback. En düşük risk — OpenAI hataları nadiren pipeline'ı durdurur.</div>
+      </div>
+      <div class="flow-card fc-yellow">
+        <div class="flow-card-header"><div class="flow-card-icon">🛡️</div><div class="flow-card-title">Ultimate Fallback</div></div>
+        <div class="flow-card-body">Tüm retry'lar başarısızsa → <b>Metin yanıt gönder</b>. Video yerine kişiselleştirilmiş metin mesaj. Creator'a "video üretilemedi" bildirimi. Hiçbir üye yanıtsız kalmaz.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Tab Navigation
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      
+      // Re-render mermaid for newly visible tab
+      const activeTab = document.getElementById('tab-' + btn.dataset.tab);
+      const unprocessed = activeTab.querySelectorAll('.mermaid:not([data-processed])');
+      if (unprocessed.length) {
+        mermaid.run({ nodes: unprocessed });
+      }
+    });
+  });
+
+  // Mermaid config
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#6c5ce7',
+      primaryTextColor: '#fff',
+      primaryBorderColor: '#5a4bd1',
+      lineColor: '#4a4a6a',
+      secondaryColor: '#1a1a2e',
+      tertiaryColor: '#12121a',
+      fontFamily: 'Outfit, sans-serif',
+      fontSize: '13px',
+      nodeBorder: '#5a4bd1',
+      clusterBkg: 'rgba(108,92,231,0.08)',
+      clusterBorder: 'rgba(108,92,231,0.3)',
+      edgeLabelBackground: '#1a1a2e',
+      nodeTextColor: '#fff'
+    },
+    flowchart: {
+      htmlLabels: true,
+      curve: 'basis',
+      padding: 16,
+      nodeSpacing: 40,
+      rankSpacing: 60,
+      diagramPadding: 20,
+      useMaxWidth: true,
+      wrappingWidth: 200
+    }
+  });
+</script>
+</body>
+</html>

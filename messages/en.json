@@ -1,0 +1,20 @@
+{
+    "Common": {
+        "loading": "Loading...",
+        "error": "Error",
+        "save": "Save",
+        "cancel": "Cancel"
+    },
+    "Auth": {
+        "signInTitle": "Welcome to Creavidy",
+        "signInSubtitle": "Engage with your fans 24/7 using your AI Digital Twin.",
+        "googleSignIn": "Continue with Google",
+        "agreeTerms": "By continuing, you agree to our Terms and Privacy Policy."
+    },
+    "Onboarding": {
+        "title": "Let's set up your profile",
+        "step1": "Connect YouTube",
+        "step2": "Create Avatar",
+        "step3": "Billing"
+    }
+}

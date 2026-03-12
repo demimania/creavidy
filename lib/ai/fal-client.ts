@@ -1,0 +1,315 @@
+// ============================================================================
+// fal.ai Client Configuration
+// ============================================================================
+import { fal } from '@fal-ai/client'
+
+// Configure fal.ai with API key from environment
+fal.config({
+  credentials: process.env.FAL_KEY || '',
+})
+
+// ── Model IDs mapping (our internal names → fal.ai endpoint IDs) ────────────
+export const FAL_IMAGE_MODELS: Record<string, string> = {
+  'flux-schnell':      'fal-ai/flux/schnell',
+  'flux-pro':          'fal-ai/flux-pro/v1.1',
+  'flux-2-pro':        'fal-ai/flux-2-pro',
+  'flux-kontext':      'fal-ai/flux-pro/kontext',
+  'recraft-v4':        'fal-ai/recraft-v3',          // v4 uses same endpoint
+  'sd-3.5':            'fal-ai/stable-diffusion-v35-large',
+  'nano-banana-2':     'fal-ai/imagen3',             // Google Imagen via fal
+  'imagine-art':       'fal-ai/imagineart/v1.5',
+  'seedream-5.0-lite': 'fal-ai/bytedance/seedream/v5/lite/text-to-image',
+  'ideogram-v3':       'fal-ai/ideogram/v3',
+}
+
+export const FAL_VIDEO_MODELS: Record<string, string> = {
+  'kling-2.5-turbo':         'fal-ai/kling-video/v2.5/turbo/image-to-video',
+  'kling-2.0-master':        'fal-ai/kling-video/v2/master/text-to-video',
+  'kling-3.0-standard-t2v':  'fal-ai/kling-video/v3/standard/text-to-video',
+  'kling-3.0-standard-i2v':  'fal-ai/kling-video/v3/standard/image-to-video',
+  'kling-3.0-pro-t2v':       'fal-ai/kling-video/v3/pro/text-to-video',
+  'veo-3':                   'fal-ai/veo3',
+  'veo-3.1':                 'fal-ai/veo3',               // same endpoint, version param
+  'ltx-2.3':                 'fal-ai/ltx-video/v2.3',
+  'ltx-2-19b':               'fal-ai/ltx-video/v2-19b',
+  'minimax-hailuo':          'fal-ai/minimax/video-01-live',
+  'luma-dream':              'fal-ai/luma-dream-machine',
+  'hunyuan':                 'fal-ai/hunyuan-video',
+  'mochi-1':                 'fal-ai/mochi-v1',
+  'sora-2-pro':              'fal-ai/sora-2-pro/text-to-video',
+  'wan-2.6-t2v':             'fal-ai/wan/v2.6/text-to-video',
+  'wan-2.6-i2v':             'fal-ai/wan/v2.6/image-to-video',
+  'seedance-1.5-pro-t2v':    'fal-ai/bytedance/seedance/v1.5/pro/text-to-video',
+  'seedance-1.5-pro-i2v':    'fal-ai/bytedance/seedance/v1.5/pro/image-to-video',
+  'seedance-1.0-lite':       'fal-ai/bytedance/seedance/v1/lite/text-to-video',
+}
+
+export const FAL_TTS_MODELS: Record<string, string> = {
+  'fal-tts':    'fal-ai/f5-tts',
+}
+
+// ── Credit costs per model ──────────────────────────────────────────────────
+export const CREDIT_COSTS: Record<string, number> = {
+  // Script (LLM)
+  'gpt-4o': 5, 'gemini-2.0': 4, 'claude-3.5': 5,
+  // Image
+  'flux-schnell': 5, 'flux-pro': 12, 'flux-2-pro': 22, 'flux-kontext': 15,
+  'recraft-v4': 10, 'sd-3.5': 8, 'nano-banana-2': 8, 'dall-e-3': 20,
+  'midjourney': 25, 'imagine-art': 10, 'seedream-5.0-lite': 18, 'ideogram-v3': 10,
+  // Video
+  'kling-2.5-turbo': 25, 'kling-2.0-master': 30,
+  'kling-3.0-standard-t2v': 35, 'kling-3.0-standard-i2v': 35, 'kling-3.0-pro-t2v': 45,
+  'veo-3': 50, 'veo-3.1': 55,
+  'ltx-2.3': 20, 'ltx-2-19b': 22, 'minimax-hailuo': 28, 'luma-dream': 35,
+  'hunyuan': 20, 'mochi-1': 15,
+  'sora-2-pro': 60, 'wan-2.6-t2v': 22, 'wan-2.6-i2v': 22,
+  'seedance-1.5-pro-t2v': 28, 'seedance-1.5-pro-i2v': 28, 'seedance-1.0-lite': 15,
+  // Voice
+  'elevenlabs': 5, 'openai-tts': 3, 'fal-tts': 2,
+}
+
+export function getCreditCost(model: string): number {
+  return CREDIT_COSTS[model] || 10
+}
+
+// ── Helper to generate image ────────────────────────────────────────────────
+export async function generateImage(params: {
+  model: string
+  prompt: string
+  width?: number
+  height?: number
+  style?: string
+}) {
+  const endpointId = FAL_IMAGE_MODELS[params.model]
+  if (!endpointId) throw new Error(`Unknown image model: ${params.model}`)
+
+  const result = await fal.subscribe(endpointId, {
+    input: {
+      prompt: params.prompt,
+      image_size: {
+        width: params.width || 1024,
+        height: params.height || 1024,
+      },
+      num_images: 1,
+      ...(params.style && params.style !== 'none' ? { style: params.style } : {}),
+    },
+  })
+
+  return {
+    imageUrl: (result.data as any)?.images?.[0]?.url || '',
+    requestId: result.requestId,
+    cost: getCreditCost(params.model),
+  }
+}
+
+// ── Helper to generate video ────────────────────────────────────────────────
+export async function generateVideo(params: {
+  model: string
+  prompt: string
+  duration?: number
+  resolution?: string
+  fps?: number
+  imageUrl?: string
+}) {
+  const endpointId = FAL_VIDEO_MODELS[params.model]
+  if (!endpointId) throw new Error(`Unknown video model: ${params.model}`)
+
+  const input: Record<string, unknown> = {
+    prompt: params.prompt,
+    ...(params.duration ? { duration: `${params.duration}` } : {}),
+    ...(params.imageUrl ? { image_url: params.imageUrl } : {}),
+  }
+
+  // Model-specific param mapping
+  if (params.model.startsWith('kling')) {
+    input.aspect_ratio = params.resolution === '720p' ? '16:9' : '16:9'
+  }
+
+  const result = await fal.subscribe(endpointId, { input })
+
+  return {
+    videoUrl: (result.data as any)?.video?.url || '',
+    requestId: result.requestId,
+    cost: getCreditCost(params.model),
+  }
+}
+
+// ── Helper for TTS ──────────────────────────────────────────────────────────
+export async function generateTTS(params: {
+  engine: string
+  text: string
+  voiceId?: string
+  speed?: number
+}) {
+  // For fal.ai TTS
+  if (params.engine === 'fal-tts') {
+    const result = await fal.subscribe('fal-ai/f5-tts', {
+      input: {
+        gen_text: params.text,
+        ref_audio_url: 'https://github.com/SWivid/F5-TTS/raw/main/tests/ref_audio/test_en_1_ref_short.wav',
+        model_type: 'F5-TTS' as const,
+        ...(params.speed ? { speed: params.speed } : {}),
+      },
+    })
+    return {
+      audioUrl: (result.data as any)?.audio_url?.url || '',
+      requestId: result.requestId,
+      cost: getCreditCost('fal-tts'),
+    }
+  }
+
+  // For OpenAI TTS
+  if (params.engine === 'openai-tts') {
+    const response = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'tts-1',
+        input: params.text,
+        voice: params.voiceId || 'alloy',
+        speed: params.speed || 1.0,
+      }),
+    })
+    if (!response.ok) throw new Error(`OpenAI TTS error: ${response.statusText}`)
+    // Convert to base64 data URL or upload to storage
+    const buffer = await response.arrayBuffer()
+    const base64 = Buffer.from(buffer).toString('base64')
+    return {
+      audioUrl: `data:audio/mp3;base64,${base64}`,
+      cost: getCreditCost('openai-tts'),
+    }
+  }
+
+  // For ElevenLabs TTS
+  if (params.engine === 'elevenlabs') {
+    const voiceId = params.voiceId || '21m00Tcm4TlvDq8ikWAM' // Rachel
+    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+      method: 'POST',
+      headers: {
+        'xi-api-key': process.env.ELEVENLABS_API_KEY || '',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: params.text,
+        model_id: 'eleven_monolingual_v1',
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75,
+        },
+      }),
+    })
+    if (!response.ok) throw new Error(`ElevenLabs error: ${response.statusText}`)
+    const buffer = await response.arrayBuffer()
+    const base64 = Buffer.from(buffer).toString('base64')
+    return {
+      audioUrl: `data:audio/mp3;base64,${base64}`,
+      cost: getCreditCost('elevenlabs'),
+    }
+  }
+
+  throw new Error(`Unknown TTS engine: ${params.engine}`)
+}
+
+// ── Helper for LLM script generation ────────────────────────────────────────
+export async function generateScript(params: {
+  model: string
+  prompt: string
+  sceneCount: number
+  language: string
+}) {
+  // Default to gemini if no model specified or unknown model
+  if (!params.model || params.model === 'gemini-2.0' || !['gpt-4o', 'claude-3.5'].includes(params.model)) {
+    params = { ...params, model: 'gemini-2.0' }
+  }
+
+  // Normalize parsed response to an array of scenes
+  function extractScenesArray(parsed: unknown): unknown[] {
+    if (Array.isArray(parsed)) return parsed
+    if (parsed && typeof parsed === 'object') {
+      const obj = parsed as Record<string, unknown>
+      // Try common wrapper keys
+      for (const key of ['scenes', 'script', 'data', 'video_script', 'result']) {
+        if (Array.isArray(obj[key])) return obj[key] as unknown[]
+      }
+      // Fallback: first array-valued key
+      for (const val of Object.values(obj)) {
+        if (Array.isArray(val)) return val as unknown[]
+      }
+    }
+    return []
+  }
+
+  // Use OpenAI for gpt-4o
+  if (params.model === 'gpt-4o') {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a professional video script writer. Generate a video script with exactly ${params.sceneCount} scenes in ${params.language}. Each scene must have: scene_number, visual_description, narration, duration_seconds. Return as a JSON object with a "scenes" key containing the array, and a "characters" key containing an array of strings representing the names of the main characters in the script.`
+          },
+          { role: 'user', content: params.prompt }
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.7,
+      }),
+    })
+    if (!response.ok) throw new Error(`OpenAI error: ${response.statusText}`)
+    const data = await response.json()
+    const parsed = JSON.parse(data.choices[0].message.content)
+    const scenes = extractScenesArray(parsed)
+    return {
+      script: JSON.stringify(scenes),
+      characters: Array.isArray(parsed.characters) ? parsed.characters : [],
+      cost: getCreditCost('gpt-4o'),
+    }
+  }
+
+  // Use Gemini
+  if (params.model === 'gemini-2.0') {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `You are a professional video script writer. Generate a video script with exactly ${params.sceneCount} scenes in ${params.language}. Each scene: scene_number, visual_description, narration, duration_seconds. Return a JSON object with a "scenes" key containing the array, and a "characters" key containing an array of strings representing the names of the main characters in the script.\n\nPrompt: ${params.prompt}`
+          }]
+        }],
+        generationConfig: { temperature: 0.7, responseMimeType: 'application/json' },
+      }),
+    })
+
+    // Rate limit veya Gemini hatası → GPT-4o'ya otomatik fallback
+    if (!response.ok) {
+      if (response.status === 429 || response.status === 503) {
+        console.warn(`[fal-client] Gemini rate limited (${response.status}), falling back to GPT-4o`)
+        return generateScript({ ...params, model: 'gpt-4o' })
+      }
+      throw new Error(`Gemini error: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    const rawText = data.candidates[0].content.parts[0].text
+    const parsed = JSON.parse(rawText)
+    const scenes = extractScenesArray(parsed)
+    return {
+      script: JSON.stringify(scenes),
+      characters: Array.isArray(parsed.characters) ? parsed.characters : [],
+      cost: getCreditCost('gemini-2.0'),
+    }
+  }
+
+  throw new Error(`Unknown script model: ${params.model}`)
+}
+
+export { fal }

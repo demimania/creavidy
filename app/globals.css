@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+:root {
+  /* Neo-Creator Theme: Dark Mode Default */
+  /* Background: #0F051D -> HSL(264, 71%, 7%) */
+  --background: 264 71% 7%;
+  --foreground: 210 40% 98%;
+
+  --card: 264 71% 10%;
+  --card-foreground: 210 40% 98%;
+
+  --popover: 264 71% 10%;
+  --popover-foreground: 210 40% 98%;
+
+  /* Primary: #D1FE17 -> HSL(74, 99%, 54%) */
+  --primary: 74 99% 54%;
+  --primary-foreground: 264 71% 7%;
+
+  --secondary: 264 30% 20%;
+  --secondary-foreground: 210 40% 98%;
+
+  --muted: 264 30% 20%;
+  --muted-foreground: 215 20% 65%;
+
+  --accent: 74 99% 54%;
+  --accent-foreground: 264 71% 7%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 264 30% 20%;
+  --input: 264 30% 20%;
+  --ring: 74 99% 54%;
+
+  --radius: 0.75rem;
+}
+
+/* Light mode overrides (support if needed, but defaults to dark usually for this brand) */
+/* We force dark mode mostly, but here is standard light just in case it switches */
+@media (prefers-color-scheme: light) {
+  /* :root {
+     --background: 0 0% 100%;
+     --foreground: 264 71% 7%;
+     ...
+  } */
+  /* For Neo-Creator, we might want "Always Dark" or specific light theme. Keeping it simple first */
+}
+
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+@keyframes scroll {
+  to {
+    transform: translate(calc(-50% - 0.5rem));
+  }
+}
+
+.animate-scroll {
+  animation: scroll var(--animation-duration, 40s) var(--animation-direction, forwards) linear infinite;
+}

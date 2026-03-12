@@ -1,0 +1,20 @@
+{
+    "Common": {
+        "loading": "Yükleniyor...",
+        "error": "Hata",
+        "save": "Kaydet",
+        "cancel": "İptal"
+    },
+    "Auth": {
+        "signInTitle": "Creavidy'ye Hoşgeldiniz",
+        "signInSubtitle": "AI Dijital İkizinizle fanlarınızla 7/24 etkileşimde kalın.",
+        "googleSignIn": "Google ile Devam Et",
+        "agreeTerms": "Devam ederek Kullanım Şartları ve Gizlilik Politikamızı kabul etmiş olursunuz."
+    },
+    "Onboarding": {
+        "title": "Profilinizi oluşturun",
+        "step1": "YouTube'u Bağla",
+        "step2": "Avatar Oluştur",
+        "step3": "Ödeme Ayarları"
+    }
+}
