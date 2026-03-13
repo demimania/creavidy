@@ -2,13 +2,15 @@
 
 import { Suspense, useState, useEffect, useRef, useCallback } from 'react'
 import { ReactFlowProvider } from 'reactflow'
-import { ArrowLeft, Save, Undo2, Redo2, Download, Play, Coins, Pencil, Loader2 } from 'lucide-react'
+import { ArrowLeft, Save, Undo2, Redo2, Download, Play, Coins, Pencil, Loader2, MessageSquare, Settings2, PanelRightClose, X, Minus, Cloud, CloudOff, Check } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams, useParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { motion, AnimatePresence } from 'framer-motion'
 import { NodeCanvas } from '@/components/workspace/NodeCanvas'
 import { NodeDetailPanel } from '@/components/workspace/NodeDetailPanel'
 import { CanvasContextMenu } from '@/components/workspace/CanvasContextMenu'
+import { WorkspaceChatPanel } from '@/components/workspace/WorkspaceChatPanel'
 import { useWorkspaceStore, DEFAULT_CONFIGS } from '@/lib/stores/workspace-store'
 import { executePipeline } from '@/lib/ai/execution-engine'
 
@@ -22,11 +24,26 @@ function WorkspaceContent() {
   // Prevents load-effect from overwriting canvas right after we create a new project
   const justCreatedIdRef = useRef<string | null>(null)
 
-  const { projectTitle, setProjectTitle, nodes, edges, setNodes, setEdges, undo, redo, _history, _historyFuture } = useWorkspaceStore()
+  const { projectTitle, setProjectTitle, nodes, edges, setNodes, setEdges, undo, redo, _history, _historyFuture, selectedNodeId } = useWorkspaceStore()
+
+  // When a node is selected, open properties panel
+  const prevSelectedRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (selectedNodeId && selectedNodeId !== prevSelectedRef.current) {
+      setPropertiesOpen(true)
+    }
+    prevSelectedRef.current = selectedNodeId
+  }, [selectedNodeId])
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [titleDraft, setTitleDraft] = useState(projectTitle)
-  const [isSaving, setIsSaving] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'unsaved' | 'saving' | 'saved'>('idle')
   const [isRunning, setIsRunning] = useState(false)
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Properties panel (right side)
+  const [propertiesOpen, setPropertiesOpen] = useState(false)
+  // Floating chat window
+  const [chatOpen, setChatOpen] = useState(false)
+  const [chatMinimized, setChatMinimized] = useState(false)
 
   // Gerçek kredi bakiyesi
   const [credits, setCredits] = useState<{ remaining: number; total: number } | null>(null)
@@ -63,6 +80,7 @@ function WorkspaceContent() {
             narrator: narratorParam || (DEFAULT_CONFIGS.videoBrief as any).narrator,
             duration: durationParam || (DEFAULT_CONFIGS.videoBrief as any).duration,
             aspect: aspectParam || (DEFAULT_CONFIGS.videoBrief as any).aspect,
+            autoGenerate: true,
           }
         },
         selected: true
@@ -89,10 +107,10 @@ function WorkspaceContent() {
 
   // Save — creates project if new, patches if existing
   const saveProject = useCallback(async (silent = false) => {
-    setIsSaving(true)
+    setSaveStatus('saving')
+    if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
     try {
       if (!projectId || projectId === 'new') {
-        // Create new project in DB
         const res = await fetch('/api/projects', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -113,15 +131,21 @@ function WorkspaceContent() {
         })
         if (!silent) toast.success('Kaydedildi')
       }
+      setSaveStatus('saved')
+      savedTimerRef.current = setTimeout(() => setSaveStatus('idle'), 3000)
     } catch {
+      setSaveStatus('unsaved')
       if (!silent) toast.error('Kayıt başarısız')
     }
-    setIsSaving(false)
   }, [projectId, projectTitle, nodes, edges, router])
 
+  // Auto-save: 5s debounce after any canvas change
+  const autoSaveSkipRef = useRef(true) // skip first render
   useEffect(() => {
+    if (autoSaveSkipRef.current) { autoSaveSkipRef.current = false; return }
+    setSaveStatus('unsaved')
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
-    saveTimerRef.current = setTimeout(() => saveProject(true), 30000)
+    saveTimerRef.current = setTimeout(() => saveProject(true), 5000)
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
   }, [nodes, edges, saveProject])
 
@@ -201,6 +225,28 @@ function WorkspaceContent() {
               <Pencil className="w-3 h-3 text-zinc-600 group-hover:text-[#D1FE17] transition-colors" />
             </button>
           )}
+
+          {/* Save status indicator */}
+          <div className="flex items-center gap-1 ml-2">
+            {saveStatus === 'saving' && (
+              <span className="flex items-center gap-1 text-[10px] text-zinc-500">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Saving...
+              </span>
+            )}
+            {saveStatus === 'saved' && (
+              <span className="flex items-center gap-1 text-[10px] text-[#06d6a0]">
+                <Check className="w-3 h-3" />
+                Saved
+              </span>
+            )}
+            {saveStatus === 'unsaved' && (
+              <span className="flex items-center gap-1 text-[10px] text-[#D1FE17]/60">
+                <Cloud className="w-3 h-3" />
+                Unsaved
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Center — Kredi Bakiyesi */}
@@ -225,16 +271,113 @@ function WorkspaceContent() {
         </div>
       </div>
 
-      {/* Main: Canvas + Properties */}
+      {/* Main: Canvas + Properties Panel */}
       <div className="flex flex-1 overflow-hidden">
+        {/* Canvas */}
         <div className="flex-1 relative">
           <NodeCanvas />
           <CanvasContextMenu />
           <div className="absolute bottom-4 left-4 z-20 px-3 py-1.5 rounded-lg bg-black/40 backdrop-blur-sm border border-white/5">
             <p className="text-[10px] text-zinc-500">Right-click to add nodes · Drag between handles to connect</p>
           </div>
+
+          {/* Floating Chat Toggle Button — bottom-left above hint */}
+          {!chatOpen && (
+            <button
+              onClick={() => { setChatOpen(true); setChatMinimized(false) }}
+              className="absolute bottom-14 left-4 z-30 w-11 h-11 rounded-full bg-gradient-to-br from-[#a78bfa] to-[#06d6a0] flex items-center justify-center shadow-lg shadow-[#a78bfa]/20 hover:scale-105 transition-transform"
+              title="Open AI Chat"
+            >
+              <MessageSquare className="w-5 h-5 text-white" />
+            </button>
+          )}
+
+          {/* Floating Chat Window */}
+          <AnimatePresence>
+            {chatOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={chatMinimized
+                  ? { opacity: 1, y: 0, scale: 1, height: 48 }
+                  : { opacity: 1, y: 0, scale: 1, height: 520 }
+                }
+                exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="absolute bottom-14 left-4 z-30 w-[380px] rounded-2xl border border-white/10 bg-[#0F051D]/95 backdrop-blur-2xl shadow-2xl shadow-black/40 overflow-hidden flex flex-col"
+                style={{ maxHeight: 'calc(100% - 80px)' }}
+              >
+                {/* Chat Window Header */}
+                <div className="flex items-center h-12 px-3 border-b border-white/10 flex-shrink-0 cursor-pointer"
+                  onClick={() => chatMinimized && setChatMinimized(false)}
+                >
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#a78bfa] to-[#06d6a0] flex items-center justify-center mr-2">
+                    <MessageSquare className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <span className="text-xs font-semibold text-white flex-1">AI Video Director</span>
+                  <div className="flex items-center gap-0.5">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setChatMinimized(!chatMinimized) }}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/5 transition-all"
+                      title={chatMinimized ? 'Expand' : 'Minimize'}
+                    >
+                      <Minus className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setChatOpen(false); setChatMinimized(false) }}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/5 transition-all"
+                      title="Close Chat"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Chat Content — hidden when minimized */}
+                {!chatMinimized && (
+                  <div className="flex-1 overflow-hidden">
+                    <WorkspaceChatPanel projectId={projectId} />
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-        <NodeDetailPanel />
+
+        {/* Right Panel: Properties Only */}
+        {propertiesOpen && (
+          <div className="flex flex-col w-72 border-l border-white/10 bg-black/20 backdrop-blur-xl">
+            {/* Header */}
+            <div className="flex items-center h-10 px-3 border-b border-white/10 flex-shrink-0">
+              <Settings2 className="w-3.5 h-3.5 text-zinc-400 mr-1.5" />
+              <span className="text-[11px] font-medium text-white flex-1">Properties</span>
+              <button
+                onClick={() => setPropertiesOpen(false)}
+                className="w-6 h-6 rounded-md flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/5 transition-all"
+                title="Close Properties"
+              >
+                <PanelRightClose className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            {/* Content */}
+            <div className="flex-1 overflow-hidden">
+              <NodeDetailPanel />
+            </div>
+          </div>
+        )}
+
+        {/* Properties toggle when panel closed + node selected */}
+        {!propertiesOpen && selectedNodeId && (
+          <div className="flex flex-col items-center py-3 px-1.5 border-l border-white/10 bg-black/20">
+            <button
+              onClick={() => setPropertiesOpen(true)}
+              className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white hover:border-white/20 transition-all relative"
+              title="Open Properties"
+            >
+              <Settings2 className="w-3.5 h-3.5" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#D1FE17] rounded-full" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -69,16 +69,31 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { project_id, messages, style, duration_seconds, aspect_ratio } = body
+    const { project_id, messages, style, duration_seconds, aspect_ratio, brief_context } = body
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: 'messages array is required' }, { status: 400 })
     }
 
     // Inject style context into system prompt
-    const contextualSystem = SYSTEM_PROMPT + (style
+    let contextualSystem = SYSTEM_PROMPT + (style
       ? `\n\n## CURRENT PROJECT SETTINGS\n- Style: ${style}\n- Duration: ${duration_seconds}s\n- Aspect Ratio: ${aspect_ratio}`
       : '')
+
+    // If there's an existing brief, inject it so AI can revise
+    if (brief_context) {
+      contextualSystem += `\n\n## EXISTING VIDEO BRIEF (for revision)
+The user already has a video brief on canvas. If they ask for changes, output ONLY the updated Scene Plan JSON (same format as above) with the requested modifications applied. Keep unchanged fields the same.
+
+If the user asks to update a specific field (theme, duration, style, etc.) without wanting a full scene rewrite, output a brief_update block:
+
+\`\`\`brief_update
+${JSON.stringify({ /* example */ theme: "new theme", duration: "30" })}
+\`\`\`
+
+Current brief config:
+${JSON.stringify(brief_context, null, 2)}`
+    }
 
     const openaiMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
       { role: 'system', content: contextualSystem },

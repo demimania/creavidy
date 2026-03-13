@@ -4,7 +4,7 @@ import { memo, useState, useEffect, useRef } from 'react'
 import { Handle, Position, type NodeProps, useReactFlow } from 'reactflow'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  FileText, Play, Loader2, ChevronDown, Check, Settings2, Image as ImageIcon, MonitorPlay, Film, Zap, Music, RefreshCw, Youtube, Instagram, Search, Filter, SlidersHorizontal, Plus, Square, Scissors, Trash, Download, Volume2, Edit2, Heart, TrendingUp, Maximize2, MoreHorizontal, X, ArrowLeft
+  FileText, Play, Loader2, ChevronDown, Check, Settings2, Image as ImageIcon, MonitorPlay, Film, Zap, Music, RefreshCw, Youtube, Instagram, Search, Filter, SlidersHorizontal, Plus, Square, Scissors, Trash, Download, Volume2, Edit2, Heart, TrendingUp, Maximize2, MoreHorizontal, X, ArrowLeft, Upload
 } from 'lucide-react'
 import { useWorkspaceStore, type NodeData, type VideoBriefConfig, type FilmStripConfig } from '@/lib/stores/workspace-store'
 import { toast } from 'sonner'
@@ -14,11 +14,38 @@ const XIcon = () => (
 )
 
 // Shared narrator options — module scope so both nodes can use them
-const narratorOptions = [
-  { name: 'Jolly Yapper', voiceId: 'alloy', img: 'https://randomuser.me/api/portraits/women/44.jpg', pitch: 1.2, rate: 1.1, text: "Hey there! I'm Jolly Yapper, and I'll be bringing your story to life!" },
-  { name: 'Ms. Labebe', voiceId: 'fable', img: 'https://randomuser.me/api/portraits/women/68.jpg', pitch: 1.4, rate: 0.95, text: "Hello! I'm Ms. Labebe. It's wonderful to narrate your video today." },
-  { name: 'Lady Holiday', voiceId: 'nova', img: 'https://randomuser.me/api/portraits/women/12.jpg', pitch: 1.1, rate: 0.9, text: "Welcome. I'm Lady Holiday. Let me guide your audience through this journey." },
-  { name: 'Happy Dino', voiceId: 'echo', img: 'https://randomuser.me/api/portraits/men/32.jpg', pitch: 0.85, rate: 1.05, text: "Yo! Happy Dino here! Ready to make your content absolutely epic!" },
+type NarratorCategory = 'trending' | 'narration' | 'female' | 'male' | 'character'
+interface NarratorOption {
+  name: string; voiceId: string; img: string; pitch: number; rate: number; text: string; emoji: string; categories: NarratorCategory[]
+}
+const narratorOptions: NarratorOption[] = [
+  { name: 'Ms. Labebe', voiceId: 'fable', img: 'https://randomuser.me/api/portraits/women/68.jpg', pitch: 1.4, rate: 0.95, text: "Hello! I'm Ms. Labebe.", emoji: '👩', categories: ['trending', 'female'] },
+  { name: 'Lady Holiday', voiceId: 'nova', img: 'https://randomuser.me/api/portraits/women/12.jpg', pitch: 1.1, rate: 0.9, text: "Welcome. I'm Lady Holiday.", emoji: '👩', categories: ['trending', 'female', 'narration'] },
+  { name: 'Happy Dino', voiceId: 'echo', img: 'https://randomuser.me/api/portraits/men/32.jpg', pitch: 0.85, rate: 1.05, text: "Happy Dino here!", emoji: '🦕', categories: ['trending', 'character'] },
+  { name: 'Jolly Yapper', voiceId: 'alloy', img: 'https://randomuser.me/api/portraits/women/44.jpg', pitch: 1.2, rate: 1.1, text: "Hey there! I'm Jolly Yapper!", emoji: '🎤', categories: ['trending', 'female'] },
+  { name: 'Game Host', voiceId: 'alloy', img: 'https://randomuser.me/api/portraits/men/45.jpg', pitch: 1.0, rate: 1.15, text: "Welcome to the show!", emoji: '🎙️', categories: ['trending', 'male'] },
+  { name: 'Calm Narrator', voiceId: 'onyx', img: 'https://randomuser.me/api/portraits/men/55.jpg', pitch: 0.9, rate: 0.85, text: "Let me tell you a story.", emoji: '🎭', categories: ['narration', 'male'] },
+  { name: 'Cheerful Girl', voiceId: 'shimmer', img: 'https://randomuser.me/api/portraits/women/22.jpg', pitch: 1.3, rate: 1.1, text: "This is so exciting!", emoji: '😊', categories: ['trending', 'female'] },
+  { name: 'Quiet Man', voiceId: 'onyx', img: 'https://randomuser.me/api/portraits/men/61.jpg', pitch: 0.8, rate: 0.8, text: "Sometimes silence speaks volumes.", emoji: '😐', categories: ['narration', 'male'] },
+  { name: 'Brave Guy', voiceId: 'echo', img: 'https://randomuser.me/api/portraits/men/71.jpg', pitch: 0.9, rate: 1.0, text: "Let's conquer this!", emoji: '💪', categories: ['male'] },
+  { name: 'ASMR Vlogger', voiceId: 'shimmer', img: 'https://randomuser.me/api/portraits/women/35.jpg', pitch: 1.05, rate: 0.75, text: "Hey... let me show you something.", emoji: '🎧', categories: ['female', 'narration'] },
+  { name: 'Snarky Critic', voiceId: 'fable', img: 'https://randomuser.me/api/portraits/men/42.jpg', pitch: 1.0, rate: 1.05, text: "Well, that's... interesting.", emoji: '😏', categories: ['male', 'character'] },
+  { name: 'Spooky Witch', voiceId: 'nova', img: 'https://randomuser.me/api/portraits/women/50.jpg', pitch: 1.5, rate: 0.9, text: "Come closer, my dear...", emoji: '🧙', categories: ['character', 'female'] },
+  { name: 'Sports Caster', voiceId: 'alloy', img: 'https://randomuser.me/api/portraits/men/28.jpg', pitch: 1.0, rate: 1.2, text: "And the crowd goes wild!", emoji: '⚽', categories: ['trending', 'male'] },
+  { name: 'Cool & Calm', voiceId: 'onyx', img: 'https://randomuser.me/api/portraits/men/15.jpg', pitch: 0.85, rate: 0.9, text: "No rush, take your time.", emoji: '😎', categories: ['male', 'narration'] },
+  { name: 'Sweet Kid', voiceId: 'shimmer', img: 'https://randomuser.me/api/portraits/lego/1.jpg', pitch: 1.6, rate: 1.0, text: "Wow, that's so cool!", emoji: '👦', categories: ['character'] },
+  { name: 'Professor', voiceId: 'onyx', img: 'https://randomuser.me/api/portraits/men/72.jpg', pitch: 0.8, rate: 0.85, text: "Let me explain this phenomenon.", emoji: '🎓', categories: ['narration', 'male'] },
+  { name: 'Diva Queen', voiceId: 'nova', img: 'https://randomuser.me/api/portraits/women/90.jpg', pitch: 1.2, rate: 0.95, text: "I don't do ordinary.", emoji: '💅', categories: ['female', 'character'] },
+  { name: 'Storyteller', voiceId: 'fable', img: 'https://randomuser.me/api/portraits/men/82.jpg', pitch: 0.95, rate: 0.85, text: "Once upon a time...", emoji: '📖', categories: ['narration', 'male'] },
+  { name: 'Excited Woman', voiceId: 'shimmer', img: 'https://randomuser.me/api/portraits/women/29.jpg', pitch: 1.3, rate: 1.15, text: "Oh my gosh, you have to see this!", emoji: '😄', categories: ['trending', 'female'] },
+  { name: 'Robot Voice', voiceId: 'echo', img: 'https://randomuser.me/api/portraits/lego/5.jpg', pitch: 0.7, rate: 0.9, text: "Processing. Please stand by.", emoji: '🤖', categories: ['character'] },
+]
+const narratorFilterTabs: { label: string; key: NarratorCategory | 'all' }[] = [
+  { label: 'Trending', key: 'trending' },
+  { label: 'Narration', key: 'narration' },
+  { label: 'Female', key: 'female' },
+  { label: 'Male', key: 'male' },
+  { label: 'Character', key: 'character' },
 ]
 
 export const VideoBriefNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) => {
@@ -28,10 +55,13 @@ export const VideoBriefNodeContent = memo(({ id, data, selected }: NodeProps<Nod
   const setEdges = useWorkspaceStore((s) => s.setEdges)
   const nodes = useWorkspaceStore((s) => s.nodes)
   const edges = useWorkspaceStore((s) => s.edges)
+  const isHighlighted = useWorkspaceStore((s) => s.highlightedNodeId === id)
   const { fitView } = useReactFlow()
 
   const config = data.config as VideoBriefConfig
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+  const [charPreview, setCharPreview] = useState<string | null>(null)
+  const [charGenerating, setCharGenerating] = useState<string | null>(null)
   const nodeRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -47,6 +77,116 @@ export const VideoBriefNodeContent = memo(({ id, data, selected }: NodeProps<Nod
   }, [openDropdown])
 
   const [isGenerating, setIsGenerating] = useState(false)
+  const autoGenerateRef = useRef(false)
+
+  // Close charPreview when clicking outside a char chip or popup
+  useEffect(() => {
+    if (!charPreview) return
+    const close = (e: MouseEvent) => {
+      const target = e.target as Element
+      if (!target.closest('[data-char-chip]') && !target.closest('[data-char-popup]')) {
+        setCharPreview(null)
+      }
+    }
+    document.addEventListener('mousedown', close, true)
+    return () => document.removeEventListener('mousedown', close, true)
+  }, [charPreview])
+
+  // ── Shared: script + character extraction + portraits ────────────────────
+  const generateScriptAndCharacters = async (): Promise<any[] | null> => {
+    const durationToScenes: Record<string, number> = { '30': 3, '60': 5, '180': 10 }
+    const numScenes = durationToScenes[String(config.duration)] || 3
+
+    const res = await fetch('/api/generate/script', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gemini-2.0',
+        prompt: `${config.prompt}${config.theme ? '. Theme: ' + config.theme : ''}${config.visualStyle ? '. Visual style: ' + config.visualStyle : ''}. IMPORTANT: Each scene MUST be strictly 10 seconds or less.`,
+        sceneCount: numScenes,
+        language: 'English',
+      }),
+    })
+    const scriptData = await res.json()
+    console.log('[VideoBrief] Script API response:', JSON.stringify({ characters: scriptData.characters, hasScript: !!scriptData.script }))
+    if (!res.ok) throw new Error(scriptData.error || 'Script generation failed')
+
+    let generatedScenes: any[] = []
+    try { generatedScenes = JSON.parse(scriptData.script) } catch {
+      generatedScenes = [{ scene_number: 1, duration_seconds: 5, visual_description: scriptData.script || 'Scene 1', narration: '' }]
+    }
+
+    // Extract characters
+    let extractedCharacters = ''
+    const extractedNames: string[] = []
+    if (Array.isArray(scriptData.characters) && scriptData.characters.length > 0) {
+      extractedCharacters = scriptData.characters.join(', ')
+      extractedNames.push(...scriptData.characters)
+    } else {
+      const allText = generatedScenes.map((s: any) => `${s.visual_description || ''} ${s.narration || ''}`).join(' ')
+      const namePattern = /\b([A-Z][a-z]{2,}(?:\s+the\s+[A-Z][a-z]+)?)\b/g
+      const stopWords = new Set(['The', 'This', 'That', 'Then', 'They', 'Their', 'There', 'Scene', 'Each', 'With', 'From', 'Into', 'Through', 'Where', 'While', 'When', 'Together', 'Important', 'Visual', 'Cartoon'])
+      const found = new Set<string>()
+      let match
+      while ((match = namePattern.exec(allText)) !== null) {
+        const name = match[1]
+        if (!stopWords.has(name) && name.length < 20) found.add(name)
+      }
+      if (found.size > 0) {
+        const names = Array.from(found).slice(0, 5)
+        extractedCharacters = names.join(', ')
+        extractedNames.push(...names)
+      }
+    }
+    // Filter: keep characters whose name shares at least one meaningful word with the prompt
+    // "White Horse" → "horse" in prompt ✓ | "Pink Rabbit" → "rabbit" not in prompt ✗
+    // "Cute Girl" or "Girl" → "girl" in prompt ✓
+    const promptLower = (config.prompt || '').toLowerCase()
+    const filterStop = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with'])
+    const filteredNames = extractedNames.filter(name => {
+      const words = name.toLowerCase().split(/\s+/).filter(w => w.length > 2 && !filterStop.has(w))
+      return words.some(word => promptLower.includes(word))
+    })
+    // Enforce max 5, fall back to all extracted if filter removes everything (edge case)
+    const finalNames = (filteredNames.length > 0 ? filteredNames : extractedNames).slice(0, 5)
+    extractedCharacters = finalNames.join(', ')
+    extractedNames.length = 0
+    extractedNames.push(...finalNames)
+    console.log('[VideoBrief] Extracted characters (filtered):', extractedCharacters)
+
+    // Cache scenes + update characters in config
+    const now = Date.now()
+    const mappedScenes = generatedScenes.map((s: any, idx: number) => ({
+      id: `scene-${now}-${idx}`,
+      description: s.visual_description || s.description || `Scene ${idx + 1}`,
+      duration: Math.min(s.duration_seconds || s.duration || 5, 10),
+      script: s.narration || s.script || '',
+      imageUrl: '', audioUrl: '', videoUrl: '', status: 'idle',
+    }))
+    updateNodeConfig(id, { character: extractedCharacters, cachedScenes: mappedScenes })
+
+    // Generate character portraits sequentially
+    if (extractedNames.length > 0) {
+      let portraitFailed = false
+      for (const charName of extractedNames) {
+        if (portraitFailed) break
+        try {
+          const portraitPrompt = `${charName} character portrait, ${config.visualStyle || 'cartoon 3D'} style, full body illustration, vibrant colors, detailed, high quality, white background`
+          const imgRes = await fetch('/api/generate/image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'flux-schnell', prompt: portraitPrompt }) })
+          if (!imgRes.ok) { portraitFailed = true; continue }
+          const imgData = await imgRes.json()
+          if (imgData.imageUrl) {
+            const freshNode = useWorkspaceStore.getState().nodes.find(n => n.id === id)
+            const freshImages = (freshNode?.data?.config as VideoBriefConfig)?.characterImageUrls || {}
+            updateNodeConfig(id, { characterImageUrls: { ...freshImages, [charName]: imgData.imageUrl } })
+          } else { portraitFailed = true }
+        } catch { portraitFailed = true }
+      }
+      if (portraitFailed) toast.error('Character portrait generation failed — check fal.ai API key')
+    }
+
+    return mappedScenes
+  }
 
   const handleGenerate = async () => {
     setIsGenerating(true)
@@ -56,45 +196,23 @@ export const VideoBriefNodeContent = memo(({ id, data, selected }: NodeProps<Nod
     const newNodeId = `filmStrip-${Date.now()}`
     let mappedScenes: any[] = []
 
-    // ── Step 1: Script generation ─────────────────────────────────────────────
+    // ── Step 1: Script generation (use cache if available) ────────────────────
     try {
-      const durationToScenes: Record<string, number> = { '30': 3, '60': 5, '180': 10 }
-      const numScenes = durationToScenes[String(config.duration)] || 3
-
-      const res = await fetch('/api/generate/script', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'gemini-2.0',
-          prompt: `${config.prompt}${config.theme ? '. Theme: ' + config.theme : ''}${config.visualStyle ? '. Visual style: ' + config.visualStyle : ''}. IMPORTANT: Each scene MUST be strictly 10 seconds or less.`,
-          sceneCount: numScenes,
-          language: 'English',
-        }),
-      })
-      const scriptData = await res.json()
-      if (!res.ok) throw new Error(scriptData.error || 'Script generation failed')
-
-      let generatedScenes: any[] = []
-      try { generatedScenes = JSON.parse(scriptData.script) } catch {
-        generatedScenes = [{ scene_number: 1, duration_seconds: 5, visual_description: scriptData.script || 'Scene 1', narration: '' }]
+      // Reuse cached scenes if already generated (from auto-generate on load)
+      if (config.cachedScenes && config.cachedScenes.length > 0) {
+        const now = Date.now()
+        mappedScenes = config.cachedScenes.map((s: any, idx: number) => ({
+          ...s,
+          id: `scene-${now}-${idx}`, // fresh IDs for new Film Strip
+          imageUrl: '', audioUrl: '', videoUrl: '', status: 'idle',
+        }))
+        // Clear cache so next Generate re-generates fresh
+        updateNodeConfig(id, { cachedScenes: [] })
+      } else {
+        const scenes = await generateScriptAndCharacters()
+        if (!scenes) throw new Error('Script generation failed')
+        mappedScenes = scenes
       }
-
-      let extractedCharacters = ''
-      if (Array.isArray(scriptData.characters) && scriptData.characters.length > 0) {
-        extractedCharacters = scriptData.characters.join(', ')
-      }
-
-      // Update the VideoBriefNode with the extracted characters
-      updateNodeConfig(id, { character: extractedCharacters } as any)
-
-      const now = Date.now()
-      mappedScenes = generatedScenes.map((s: any, idx: number) => ({
-        id: `scene-${now}-${idx}`,
-        description: s.visual_description || s.description || `Scene ${idx + 1}`,
-        duration: Math.min(s.duration_seconds || s.duration || 5, 10),
-        script: s.narration || s.script || '',
-        imageUrl: '', audioUrl: '', videoUrl: '', status: 'idle',
-      }))
 
       const currentNode = nodes.find(n => n.id === id)
       if (!currentNode) throw new Error('Node not found')
@@ -118,8 +236,11 @@ export const VideoBriefNodeContent = memo(({ id, data, selected }: NodeProps<Nod
         selected: false,
       }
 
-      setNodes([...nodes, newNode])
-      setEdges([...edges, {
+      // Use fresh state to preserve character updates made by updateNodeConfig above
+      const freshNodes = useWorkspaceStore.getState().nodes
+      const freshEdges = useWorkspaceStore.getState().edges
+      setNodes([...freshNodes, newNode])
+      setEdges([...freshEdges, {
         id: `e-${id}-${newNodeId}`,
         source: id, target: newNodeId,
         type: 'labeled',
@@ -144,8 +265,10 @@ export const VideoBriefNodeContent = memo(({ id, data, selected }: NodeProps<Nod
     const visualStyle = config.visualStyle
 
     try {
-      // TTS phase
+      // TTS phase — stop early on auth errors to save credits
+      let ttsFailed = false
       for (let i = 0; i < workingScenes.length; i++) {
+        if (ttsFailed) break
         updateNodeConfig(newNodeId, {
           scenes: [...workingScenes], generationPhase: 'tts',
           generationProgress: Math.round((i / workingScenes.length) * 100),
@@ -156,9 +279,10 @@ export const VideoBriefNodeContent = memo(({ id, data, selected }: NodeProps<Nod
               method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ engine: 'openai-tts', text: workingScenes[i].script, voiceId: narratorVoiceId }),
             })
+            if (!r.ok) { ttsFailed = r.status === 403 || r.status === 401; continue }
             const d = await r.json()
             if (d.audioUrl) workingScenes[i] = { ...workingScenes[i], audioUrl: d.audioUrl }
-          } catch { /* skip this scene's TTS */ }
+          } catch { ttsFailed = true }
         }
         updateNodeConfig(newNodeId, {
           scenes: [...workingScenes], generationPhase: 'tts',
@@ -166,11 +290,17 @@ export const VideoBriefNodeContent = memo(({ id, data, selected }: NodeProps<Nod
         })
       }
 
-      toast.success('Audio ready! Generating visuals...')
+      if (ttsFailed) {
+        toast.warning('TTS failed — generating visuals...')
+      } else {
+        toast.success('Audio ready! Generating visuals...')
+      }
 
-      // Images phase
+      // Images phase — stop early on API errors to save credits
       let imageErrors = 0
+      let apiFailed = false
       for (let i = 0; i < workingScenes.length; i++) {
+        if (apiFailed) break // Don't waste credits if API is down
         updateNodeConfig(newNodeId, {
           scenes: [...workingScenes], generationPhase: 'images',
           generationProgress: Math.round((i / workingScenes.length) * 100),
@@ -183,17 +313,22 @@ export const VideoBriefNodeContent = memo(({ id, data, selected }: NodeProps<Nod
               method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ model: 'flux-schnell', prompt }),
             })
+            if (!r.ok) {
+              imageErrors++
+              apiFailed = r.status === 403 || r.status === 401 // Stop on auth errors
+              console.error(`[Image Scene ${i + 1}] HTTP ${r.status}`)
+              continue
+            }
             const d = await r.json()
             if (d.imageUrl) {
               workingScenes[i] = { ...s, imageUrl: d.imageUrl, status: 'done' }
             } else {
               imageErrors++
               console.error(`[Image Scene ${i + 1}]`, d.error)
-              toast.error(`Scene ${i + 1} image: ${d.error || 'fal.ai error'}`)
             }
           } catch (e: any) {
             imageErrors++
-            toast.error(`Scene ${i + 1}: ${e.message}`)
+            apiFailed = true
           }
         }
         updateNodeConfig(newNodeId, {
@@ -206,7 +341,9 @@ export const VideoBriefNodeContent = memo(({ id, data, selected }: NodeProps<Nod
         scenes: [...workingScenes], generationPhase: 'done', generationProgress: 100,
       })
       if (imageErrors === 0) {
-        toast.success('Film strip ready! 🎬')
+        toast.success('Film strip ready!')
+      } else if (apiFailed) {
+        toast.error('Image generation failed — check fal.ai API key/credits')
       } else {
         toast.warning(`${workingScenes.length - imageErrors}/${workingScenes.length} images generated`)
       }
@@ -216,22 +353,81 @@ export const VideoBriefNodeContent = memo(({ id, data, selected }: NodeProps<Nod
     }
   }
 
+  // Auto-generate when coming from landing page (autoGenerate flag)
+  // Only generates script + characters (no Film Strip) — user reviews, then clicks Generate Node
+  useEffect(() => {
+    const cfg = data.config as VideoBriefConfig
+    if (cfg.autoGenerate && !autoGenerateRef.current) {
+      autoGenerateRef.current = true
+      updateNodeConfig(id, { autoGenerate: false } as any)
+      setIsGenerating(true)
+      generateScriptAndCharacters().catch(() => {
+        toast.error('Auto-generation failed')
+      }).finally(() => setIsGenerating(false))
+      // No return/cleanup — intentional, prevents Strict Mode from cancelling
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const dropdownButtonProps = (key: string) => ({
     onClick: () => setOpenDropdown(openDropdown === key ? null : key),
     className: `flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors w-full ${openDropdown === key ? 'bg-white/10 text-white border border-white/20' : 'bg-white/5 text-zinc-300 hover:bg-white/10 border border-transparent hover:border-white/10'}`
   })
 
-  // Mock Dropdown Options
+  // Visual Style Options — CapCut-style 47 styles
+  // Style options — synced with landing page (47 styles + gradient thumbnails)
   const styleOptions = [
-    { id: "realistic", label: "Realistic Film", emoji: "🎬", color: "#e2e8f0" },
-    { id: "cartoon3d", label: "Cartoon 3D", emoji: "🧊", color: "#a78bfa" },
-    { id: "photograph", label: "Photograph", emoji: "📷", color: "#60a5fa" },
-    { id: "anime", label: "Anime", emoji: "🌸", color: "#f472b6" },
-    { id: "watercolor", label: "Watercolor", emoji: "🎨", color: "#34d399" },
-    { id: "pixelart", label: "Pixel Art", emoji: "👾", color: "#fbbf24" },
+    { id: "realistic-film", label: "Realistic Film", emoji: "🎬", gradient: "from-amber-200 to-orange-300" },
+    { id: "cartoon-3d", label: "Cartoon 3D", emoji: "🎭", gradient: "from-rose-300 to-pink-400" },
+    { id: "photograph", label: "Photograph", emoji: "📷", gradient: "from-amber-100 to-yellow-200" },
+    { id: "surreal", label: "Surreal", emoji: "🌀", gradient: "from-purple-300 to-indigo-400" },
+    { id: "felt-dolls", label: "Felt Dolls", emoji: "🧸", gradient: "from-sky-200 to-cyan-300" },
+    { id: "pastel-paint", label: "Pastel Paint", emoji: "🎨", gradient: "from-pink-200 to-rose-300" },
+    { id: "cosmic-horror", label: "Cosmic Horror", emoji: "🌌", gradient: "from-indigo-400 to-purple-600" },
+    { id: "urban-sketch", label: "Urban Sketch", emoji: "🏙️", gradient: "from-gray-300 to-slate-400" },
+    { id: "dark-deco", label: "Dark Deco", emoji: "🕶️", gradient: "from-zinc-400 to-gray-600" },
+    { id: "gta", label: "GTA Style", emoji: "🎮", gradient: "from-green-400 to-emerald-500" },
+    { id: "toon-shader", label: "Toon Shader", emoji: "✏️", gradient: "from-sky-300 to-blue-400" },
+    { id: "noir-comic", label: "Noir Comic", emoji: "🖤", gradient: "from-gray-600 to-zinc-800" },
+    { id: "ink-watercolor", label: "Ink Watercolor", emoji: "🖌️", gradient: "from-emerald-200 to-teal-300" },
+    { id: "modern-realism", label: "Modern Realism", emoji: "🏡", gradient: "from-stone-200 to-stone-400" },
+    { id: "futuristic", label: "Futuristic", emoji: "🚀", gradient: "from-cyan-400 to-blue-500" },
+    { id: "biblical", label: "Biblical", emoji: "✝️", gradient: "from-amber-300 to-yellow-500" },
+    { id: "puffy-3d", label: "Puffy 3D", emoji: "🫧", gradient: "from-blue-200 to-sky-300" },
+    { id: "urban-dream", label: "Urban Dream", emoji: "💤", gradient: "from-violet-300 to-purple-400" },
+    { id: "dreamscape", label: "Dreamscape", emoji: "🌄", gradient: "from-orange-200 to-pink-300" },
+    { id: "dynamic", label: "Dynamic", emoji: "⚡", gradient: "from-yellow-400 to-amber-500" },
+    { id: "cute-cartoon", label: "Cute Cartoon", emoji: "🌸", gradient: "from-pink-300 to-rose-400" },
+    { id: "tiny-world", label: "Tiny World", emoji: "🔬", gradient: "from-green-300 to-teal-400" },
+    { id: "claymation", label: "Claymation", emoji: "🏺", gradient: "from-orange-300 to-amber-400" },
+    { id: "90s-pixel", label: "90s Pixel", emoji: "👾", gradient: "from-yellow-300 to-amber-400" },
+    { id: "low-poly", label: "Low Poly", emoji: "📐", gradient: "from-teal-300 to-cyan-400" },
+    { id: "cross-stitch", label: "Cross Stitch", emoji: "🧵", gradient: "from-rose-300 to-pink-400" },
+    { id: "epic-fantasy", label: "Epic Fantasy", emoji: "🐉", gradient: "from-red-400 to-orange-500" },
+    { id: "anime", label: "Anime", emoji: "🌸", gradient: "from-violet-300 to-purple-400" },
+    { id: "jurassic", label: "Jurassic", emoji: "🦕", gradient: "from-green-400 to-emerald-500" },
+    { id: "impressionist", label: "Impressionist", emoji: "🖼️", gradient: "from-blue-300 to-indigo-400" },
+    { id: "comic-book", label: "Comic Book", emoji: "🦅", gradient: "from-red-300 to-rose-400" },
+    { id: "horror", label: "Horror", emoji: "👻", gradient: "from-gray-500 to-zinc-700" },
+    { id: "cyberpunk", label: "Cyberpunk", emoji: "🤖", gradient: "from-cyan-400 to-blue-500" },
+    { id: "creepy-photo", label: "Creepy Photo", emoji: "🌫️", gradient: "from-slate-400 to-gray-600" },
+    { id: "neoclassical", label: "Neoclassical", emoji: "🏛️", gradient: "from-stone-300 to-amber-400" },
+    { id: "prehistoric", label: "Prehistoric", emoji: "🪨", gradient: "from-amber-400 to-stone-500" },
+    { id: "roman-art", label: "Roman Art", emoji: "🏺", gradient: "from-orange-300 to-amber-400" },
+    { id: "nature-photo", label: "Nature Photo", emoji: "🌿", gradient: "from-green-300 to-emerald-400" },
+    { id: "pop-art", label: "Pop Art", emoji: "🎯", gradient: "from-red-400 to-yellow-400" },
+    { id: "bw-film", label: "B&W Film", emoji: "🎞️", gradient: "from-gray-400 to-zinc-600" },
+    { id: "gothic", label: "Gothic", emoji: "🦇", gradient: "from-purple-500 to-zinc-700" },
+    { id: "bw-graphic", label: "B&W Graphic", emoji: "✍️", gradient: "from-gray-300 to-zinc-500" },
+    { id: "oil-painting", label: "Oil Painting", emoji: "🖼️", gradient: "from-amber-300 to-orange-400" },
+    { id: "fairy-tale", label: "Fairy Tale", emoji: "🧚", gradient: "from-pink-300 to-violet-400" },
+    { id: "comic-strip", label: "Comic Strip", emoji: "💬", gradient: "from-yellow-300 to-orange-400" },
+    { id: "dark-manga", label: "Dark Manga", emoji: "⛩️", gradient: "from-red-500 to-zinc-700" },
+    { id: "ancient-chinese", label: "Ancient Chinese", emoji: "🐉", gradient: "from-red-400 to-amber-500" },
   ];
 
   const [narratorTab, setNarratorTab] = useState<'Voice' | 'Avatar'>('Voice')
+  const [narratorFilter, setNarratorFilter] = useState<NarratorCategory | 'all'>('trending')
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const masterGainRef = useRef<GainNode | null>(null)
 
@@ -347,8 +543,8 @@ export const VideoBriefNodeContent = memo(({ id, data, selected }: NodeProps<Nod
   return (
     <>
       <motion.div ref={nodeRef} initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-        className={`relative w-[340px] rounded-2xl border transition-all bg-[#0F051D] shadow-2xl z-[1000] ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'}`}
-        style={{ borderColor: selected ? color : 'rgba(255,255,255,0.15)', boxShadow: selected ? `0 0 30px ${color}30` : undefined }}>
+        className={`relative w-[340px] rounded-2xl border transition-all bg-[#0F051D] shadow-2xl z-[1000] ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'} ${isHighlighted ? 'animate-pulse ring-2 ring-[#a78bfa] ring-offset-2 ring-offset-[#0F051D]' : ''}`}
+        style={{ borderColor: selected ? color : isHighlighted ? '#a78bfa' : 'rgba(255,255,255,0.15)', boxShadow: selected ? `0 0 30px ${color}30` : isHighlighted ? '0 0 40px rgba(167,139,250,0.3)' : undefined }}>
 
         {/* Header */}
         <div className="flex items-center gap-2 px-4 py-3 rounded-t-2xl bg-white/[0.02] border-b border-white/10">
@@ -375,17 +571,45 @@ export const VideoBriefNodeContent = memo(({ id, data, selected }: NodeProps<Nod
                   </button>
                   <AnimatePresence>
                     {openDropdown === 'visualStyle' && (
-                      <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="absolute z-50 top-full mt-1 right-0 w-64 bg-[#1a0d2e] border border-white/10 rounded-2xl shadow-2xl p-2 z-50 grid grid-cols-2 gap-2 origin-top-right">
-                        {styleOptions.map(style => (
+                      <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="absolute z-50 top-full mt-1 left-0 w-[320px] bg-[#1a0d2e]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-3 origin-top-left">
+                        <p className="text-[11px] font-bold text-white mb-2.5">Style</p>
+                        <div className="relative">
+                          <div className="flex gap-2 overflow-x-auto pb-2 nowheel" style={{ scrollbarWidth: 'none' }}>
+                            {/* None option */}
+                            <button
+                              onClick={() => { updateNodeConfig(id, { visualStyle: '' }); setOpenDropdown(null) }}
+                              className="flex-shrink-0 flex flex-col items-center gap-1.5"
+                            >
+                              <div className={`w-[56px] h-[70px] rounded-xl border-2 flex items-center justify-center transition-all ${!config.visualStyle ? 'border-[#a78bfa] bg-white/10' : 'border-white/10 bg-white/5 hover:border-white/20'}`}>
+                                <X className="w-4 h-4 text-zinc-500" />
+                              </div>
+                              <span className="text-[9px] text-zinc-400 w-[56px] text-center truncate">None</span>
+                            </button>
+                            {styleOptions.map(s => (
+                              <button
+                                key={s.id}
+                                onClick={() => { updateNodeConfig(id, { visualStyle: s.label }); setOpenDropdown(null) }}
+                                className="flex-shrink-0 flex flex-col items-center gap-1.5"
+                              >
+                                <div className={`w-[56px] h-[70px] rounded-xl border-2 overflow-hidden transition-all ${config.visualStyle === s.label ? 'border-[#a78bfa] ring-1 ring-[#a78bfa]/30' : 'border-transparent hover:border-white/20'}`}>
+                                  <div className={`w-full h-full bg-gradient-to-br ${s.gradient} flex items-center justify-center text-xl`}>
+                                    {s.emoji}
+                                  </div>
+                                </div>
+                                <span className={`text-[9px] w-[56px] text-center truncate ${config.visualStyle === s.label ? 'text-white font-medium' : 'text-zinc-400'}`}>{s.label}</span>
+                              </button>
+                            ))}
+                          </div>
                           <button
-                            key={style.id}
-                            onClick={() => { updateNodeConfig(id, { visualStyle: style.label }); setOpenDropdown(null) }}
-                            className={`flex flex-col items-center justify-center gap-1 px-2 py-3 rounded-xl transition-all cursor-pointer ${config.visualStyle === style.label ? 'bg-white/10 border border-white/20' : 'bg-transparent border border-transparent hover:bg-white/5'}`}
+                            onClick={() => {
+                              const container = document.querySelector('[data-style-scroll]')
+                              container?.scrollBy({ left: 180, behavior: 'smooth' })
+                            }}
+                            className="absolute right-0 top-0 h-[70px] w-6 flex items-center justify-center bg-gradient-to-l from-[#1a0d2e] to-transparent"
                           >
-                            <span className="text-lg">{style.emoji}</span>
-                            <span className="text-[10px] font-medium text-zinc-300 text-center leading-tight">{style.label}</span>
+                            <ChevronDown className="w-3.5 h-3.5 text-zinc-400 -rotate-90" />
                           </button>
-                        ))}
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -396,156 +620,232 @@ export const VideoBriefNodeContent = memo(({ id, data, selected }: NodeProps<Nod
                 <div className="flex-1 relative">
                   <button {...dropdownButtonProps('narrator')}>
                     <div className="flex items-center gap-1.5">
-                      <img src={currentNarrator.img} alt="" className="w-4 h-4 rounded-full object-cover" /> {config.narrator}
+                      <div className="w-4 h-4 rounded-full bg-gradient-to-br from-[#7c3aed] to-[#4f46e5] flex items-center justify-center text-[8px]">{currentNarrator.emoji}</div>
+                      <span className="text-[11px] font-bold text-white truncate">{config.narrator}</span>
                     </div>
                     <ChevronDown className="w-3 h-3 text-zinc-500" />
                   </button>
                   <AnimatePresence>
                     {openDropdown === 'narrator' && (
-                      <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="absolute z-50 top-full mt-1 right-0 w-64 bg-[#1a0d2e] border border-white/10 rounded-xl shadow-2xl flex flex-col origin-top-right overflow-hidden">
-
-                        <div className="p-3 bg-white/5 border-b border-white/10 space-y-3 shrink-0">
-                          <div className="text-sm font-bold text-white">Narrator</div>
-                          <div className="flex bg-black/40 p-1 rounded-lg">
-                            <button onClick={() => setNarratorTab('Voice')} className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${narratorTab === 'Voice' ? 'bg-white/10 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}>Voice</button>
-                            <button onClick={() => setNarratorTab('Avatar')} className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${narratorTab === 'Avatar' ? 'bg-white/10 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}>Avatar</button>
-                          </div>
+                      <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="absolute z-50 top-full mt-1 left-0 w-[320px] bg-[#1a0d2e]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-3 origin-top-left">
+                        {/* Tabs */}
+                        <div className="flex gap-3 mb-3">
+                          <button onClick={() => setNarratorTab('Voice')} className={`text-[11px] font-semibold pb-1 border-b-2 transition-all ${narratorTab === 'Voice' ? 'text-white border-[#a78bfa]' : 'text-zinc-500 border-transparent hover:text-zinc-300'}`}>Voice</button>
+                          <button onClick={() => setNarratorTab('Avatar')} className={`text-[11px] font-semibold pb-1 border-b-2 transition-all ${narratorTab === 'Avatar' ? 'text-white border-[#a78bfa]' : 'text-zinc-500 border-transparent hover:text-zinc-300'}`}>Avatars</button>
                         </div>
 
-                        <div className="p-2 h-[260px] overflow-y-auto nowheel custom-scrollbar flex flex-col space-y-0.5">
-                          {narratorOptions.map((opt) => {
-                            const isSelected = config.narrator === opt.name;
-                            return (
-                              <div key={opt.name} className={`w-full flex items-center justify-between p-2 hover:bg-white/10 rounded-xl transition-colors group cursor-pointer ${isSelected ? 'bg-white/5' : ''}`} onClick={() => { updateNodeConfig(id, { narrator: opt.name }); setOpenDropdown(null); }}>
-
-                                <div className="flex items-center gap-3 min-w-0">
-                                  <div className="relative shrink-0 w-10 h-10 rounded-full overflow-hidden border border-white/10 shadow-sm" onClick={(e) => playNarratorPreview(opt, e)}>
-                                    <img src={opt.img} alt="" className="w-full h-full object-cover" />
-                                    <div className={`absolute inset-0 flex items-center justify-center transition-opacity ${playingPreview === opt.name ? 'bg-black/60 opacity-100' : 'bg-black/40 opacity-0 group-hover:opacity-100'}`}>
-                                      {playingPreview === opt.name ? (
-                                        <Square className="w-4 h-4 fill-white text-white" />
-                                      ) : (
-                                        <Play className="w-4 h-4 fill-white text-white ml-0.5" />
-                                      )}
-                                    </div>
-                                  </div>
-                                  <span className="text-[12px] text-white font-bold truncate">{opt.name}</span>
-                                </div>
-
-                                {isSelected ? (
-                                  <div className="shrink-0 w-5 h-5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] flex items-center justify-center mr-1">
-                                    <Check className="w-3.5 h-3.5 text-white" />
-                                  </div>
-                                ) : (
-                                  <div className="shrink-0 w-5 h-5 rounded-full border border-white/10 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity mr-1">
-                                    <Plus className="w-3.5 h-3.5 text-white/50 group-hover:text-white" />
-                                  </div>
-                                )}
+                        {narratorTab === 'Voice' ? (
+                          <div className="grid grid-cols-3 gap-2 max-h-[280px] overflow-y-auto nowheel" style={{ scrollbarWidth: 'thin' }}>
+                            {/* None option */}
+                            <button
+                              onClick={() => { updateNodeConfig(id, { narrator: '' }); setOpenDropdown(null) }}
+                              className={`flex items-center gap-2 px-2 py-2 rounded-xl border transition-all ${!config.narrator ? 'border-[#a78bfa] bg-white/10' : 'border-white/10 bg-white/5 hover:border-white/20'}`}
+                            >
+                              <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                                <X className="w-3 h-3 text-zinc-500" />
                               </div>
-                            )
-                          })}
-                        </div>
+                              <span className="text-[10px] text-zinc-400 truncate">None</span>
+                            </button>
+                            {narratorOptions.map(opt => (
+                              <button
+                                key={opt.name}
+                                onClick={() => { updateNodeConfig(id, { narrator: opt.name }); setOpenDropdown(null) }}
+                                className={`flex items-center gap-2 px-2 py-2 rounded-xl border transition-all ${config.narrator === opt.name ? 'border-[#a78bfa] bg-white/10' : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/[0.07]'}`}
+                              >
+                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#7c3aed] to-[#4f46e5] flex items-center justify-center text-sm flex-shrink-0">
+                                  {opt.emoji}
+                                </div>
+                                <span className={`text-[10px] truncate ${config.narrator === opt.name ? 'text-white font-medium' : 'text-zinc-300'}`}>{opt.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-6">
+                            <Volume2 className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
+                            <p className="text-zinc-500 text-[11px]">AI avatars coming soon</p>
+                          </div>
+                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-zinc-400 w-24">Character</span>
-                <div className="flex-1 relative group">
+              <div className="flex items-start justify-between">
+                <span className="text-[11px] text-zinc-400 w-24 pt-1">Character</span>
+                <div className="flex-1">
                   {(() => {
                     const characterNames = config.character ? config.character.split(',').map(c => c.trim()).filter(Boolean) : [];
-                    const charImages = (config as any).characterImageUrls || {}; // Record<string, string>
-                    return (
-                      <>
-                        <button {...dropdownButtonProps('character')}>
-                          <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
-                            {characterNames.length > 0 ? (
-                              characterNames.map(name => (
-                                charImages[name] ? (
-                                  <img key={name} src={charImages[name]} className="w-5 h-5 rounded-full object-cover shrink-0" title={name} />
-                                ) : (
-                                  <span key={name} className="flex shrink-0 items-center justify-center text-[10px] bg-white/10 px-1.5 py-0.5 rounded-md truncate max-w-[80px]" title={name}>👤 {name}</span>
-                                )
-                              ))
-                            ) : (
-                              <span className="text-zinc-500">No characters</span>
-                            )}
-                          </div>
-                          <ChevronDown className="w-3 h-3 text-zinc-500 shrink-0" />
-                        </button>
+                    const charImages = config.characterImageUrls || {} as Record<string, string>;
 
-                        <AnimatePresence>
-                          {openDropdown === 'character' && (
-                            <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="absolute z-50 top-full mt-1 right-0 w-64 bg-[#1a0d2e] border border-white/10 rounded-xl shadow-2xl p-2 origin-top-right flex flex-col gap-3">
-                              {characterNames.map((name) => (
-                                <div key={name} className="flex gap-3 items-center">
-                                  <div className="shrink-0">
-                                    {charImages[name] ? (
-                                      <img src={charImages[name]} alt={name} className="w-16 h-16 object-cover rounded-lg border border-white/10" />
-                                    ) : (
-                                      <div className="w-16 h-16 rounded-lg border border-dashed border-white/20 bg-black/20 flex flex-col items-center justify-center gap-1 text-zinc-600">
-                                        <ImageIcon className="w-5 h-5" />
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="flex-1 flex flex-col gap-1.5 min-w-0">
-                                    <span className="text-xs text-white font-medium truncate" title={name}>{name}</span>
-                                    <div className="flex gap-1.5">
-                                      <button
-                                        onClick={async (e) => {
-                                          e.stopPropagation()
-                                          try {
-                                            const prompt = `${name}, ${config.visualStyle || 'cartoon 3D'} style, character portrait, white background, high quality`
-                                            const res = await fetch('/api/generate/image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'flux-schnell', prompt }) })
-                                            const d = await res.json()
-                                            if (d.imageUrl) {
-                                               updateNodeConfig(id, { characterImageUrls: { ...charImages, [name]: d.imageUrl } } as any)
-                                               setOpenDropdown(null)
-                                            }
-                                          } catch { toast.error('Character generation failed') }
-                                        }}
-                                        className="flex-1 py-1 bg-[#D1FE17]/10 hover:bg-[#D1FE17]/20 text-[#D1FE17] text-[9px] font-bold rounded flex items-center justify-center gap-1 transition-colors border border-[#D1FE17]/20"
-                                      >
-                                        <Zap className="w-2.5 h-2.5" /> Gen
-                                      </button>
-                                      <label className="flex-1 py-1 bg-white/5 hover:bg-white/10 text-white text-[9px] font-bold rounded flex items-center justify-center gap-1 transition-colors cursor-pointer border border-white/10">
-                                        <RefreshCw className="w-2.5 h-2.5" /> Upload
-                                        <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                                          const file = e.target.files?.[0]
-                                          if (file) {
-                                             updateNodeConfig(id, { characterImageUrls: { ...charImages, [name]: URL.createObjectURL(file) } } as any)
-                                             setOpenDropdown(null)
-                                          }
-                                        }} />
-                                      </label>
+                    const generateCharImage = async (name: string) => {
+                      setCharGenerating(name)
+                      try {
+                        const prompt = `${name} character portrait, ${config.visualStyle || 'cartoon 3D'} style, full body illustration, vibrant colors, detailed, high quality, white background`
+                        const res = await fetch('/api/generate/image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'flux-schnell', prompt }) })
+                        if (!res.ok) { toast.error(`Image API error (${res.status})`); setCharGenerating(null); return }
+                        const d = await res.json()
+                        if (d.imageUrl) {
+                          // Read fresh state to avoid overwriting other portraits
+                          const freshNode = useWorkspaceStore.getState().nodes.find(n => n.id === id)
+                          const freshImages = (freshNode?.data?.config as VideoBriefConfig)?.characterImageUrls || {}
+                          updateNodeConfig(id, { characterImageUrls: { ...freshImages, [name]: d.imageUrl } })
+                        } else {
+                          toast.error(`Failed: ${d.error || 'Unknown'}`)
+                        }
+                      } catch { toast.error('Character image generation failed') }
+                      setCharGenerating(null)
+                    }
+
+                    return (
+                      <div className="flex flex-wrap gap-2 items-center">
+                        {characterNames.map(name => {
+                          const imgUrl = charImages[name]
+                          const isGen = charGenerating === name
+                          return (
+                            <div key={name} className="relative group">
+                              {/* Character chip — referans: yuvarlak avatar + isim */}
+                              <button
+                                data-char-chip={name}
+                                onClick={() => setCharPreview(charPreview === name ? null : name)}
+                                className={`inline-flex items-center gap-2 bg-white/5 border rounded-full pl-1 pr-3.5 py-1 transition-all cursor-pointer ${charPreview === name ? 'border-[#a78bfa]/50 bg-white/10 shadow-lg shadow-[#a78bfa]/10' : 'border-white/10 hover:border-white/20'}`}
+                              >
+                                {/* Round avatar */}
+                                <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-white/10 shadow-sm">
+                                  {isGen ? (
+                                    <div className="w-full h-full bg-gradient-to-br from-[#a78bfa]/30 to-[#7c3aed]/30 flex items-center justify-center">
+                                      <Loader2 className="w-3.5 h-3.5 text-[#a78bfa] animate-spin" />
                                     </div>
-                                  </div>
+                                  ) : imgUrl ? (
+                                    <img src={imgUrl} alt={name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full bg-gradient-to-br from-[#a78bfa]/20 to-[#7c3aed]/20 border border-dashed border-[#a78bfa]/40 flex items-center justify-center">
+                                      <Zap className="w-3.5 h-3.5 text-[#a78bfa]" />
+                                    </div>
+                                  )}
                                 </div>
-                              ))}
-                              {characterNames.length === 0 && <span className="text-xs text-zinc-500 text-center py-2">No characters found.</span>}
-                              <div className="flex gap-2 items-center mt-1 border-t border-white/10 pt-3">
-                                <input 
-                                  type="text" 
-                                  placeholder="Add character (Type & Enter)" 
-                                  className="flex-1 bg-black/20 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-white outline-none focus:border-[#D1FE17]/50"
-                                  onKeyDown={(e) => {
+                                <span className="text-[11px] font-bold text-zinc-100">{name}</span>
+                              </button>
+
+                              {/* Delete on hover */}
+                              <button
+                                onClick={() => {
+                                  const updated = characterNames.filter(c => c !== name).join(', ')
+                                  const newImages = { ...charImages }
+                                  delete newImages[name]
+                                  updateNodeConfig(id, { character: updated, characterImageUrls: newImages })
+                                  if (charPreview === name) setCharPreview(null)
+                                }}
+                                className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-md"
+                              >
+                                <X className="w-2.5 h-2.5" />
+                              </button>
+
+                              {/* Image Preview Popup — referans: büyük resim + Upload/Re-generate */}
+                              <AnimatePresence>
+                                {charPreview === name && (
+                                  <motion.div
+                                    data-char-popup
+                                    initial={{ opacity: 0, y: 5, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                                    className="absolute z-50 top-full mt-2 left-1/2 -translate-x-1/2 bg-[#1a0d2e]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+                                    style={{ width: 240 }}
+                                  >
+                                    {/* Large Preview */}
+                                    <div className="w-full aspect-square bg-black/30 flex items-center justify-center relative">
+                                      {isGen ? (
+                                        <div className="flex flex-col items-center gap-2">
+                                          <Loader2 className="w-10 h-10 text-[#a78bfa] animate-spin" />
+                                          <span className="text-[10px] text-zinc-500">Generating...</span>
+                                        </div>
+                                      ) : imgUrl ? (
+                                        <img src={imgUrl} alt={name} className="w-full h-full object-cover" />
+                                      ) : (
+                                        <div className="flex flex-col items-center gap-2 text-zinc-500">
+                                          <ImageIcon className="w-10 h-10" />
+                                          <span className="text-[10px]">No portrait yet</span>
+                                        </div>
+                                      )}
+                                      {/* Name badge */}
+                                      <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-full">
+                                        <span className="text-[11px] font-bold text-white">{name}</span>
+                                      </div>
+                                    </div>
+
+                                    {/* Action Buttons: Upload + Re-generate */}
+                                    <div className="p-2.5 flex gap-2">
+                                      <label className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[10px] font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition-all cursor-pointer">
+                                        <Upload className="w-3.5 h-3.5" />
+                                        Upload
+                                        <input
+                                          type="file"
+                                          accept="image/*"
+                                          className="hidden"
+                                          onChange={(e) => {
+                                            const file = e.target.files?.[0]
+                                            if (!file) return
+                                            const reader = new FileReader()
+                                            reader.onload = () => {
+                                              const dataUrl = reader.result as string
+                                              updateNodeConfig(id, { characterImageUrls: { ...charImages, [name]: dataUrl } })
+                                            }
+                                            reader.readAsDataURL(file)
+                                          }}
+                                        />
+                                      </label>
+                                      <button
+                                        onClick={() => generateCharImage(name)}
+                                        disabled={isGen}
+                                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#a78bfa]/10 border border-[#a78bfa]/20 text-[10px] font-semibold text-[#a78bfa] hover:bg-[#a78bfa]/20 transition-all disabled:opacity-50"
+                                      >
+                                        <RefreshCw className={`w-3.5 h-3.5 ${isGen ? 'animate-spin' : ''}`} />
+                                        {imgUrl ? 'Re-generate' : 'Generate'}
+                                      </button>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                          )
+                        })}
+                        {/* Add character button */}
+                        <div className="relative">
+                          <button
+                            onClick={() => setOpenDropdown(openDropdown === 'character' ? null : 'character')}
+                            className="inline-flex items-center gap-1 px-3 py-2 rounded-full text-[10px] text-zinc-500 border border-dashed border-white/15 hover:border-[#a78bfa]/40 hover:text-[#a78bfa] transition-colors"
+                          >
+                            <Plus className="w-3 h-3" /> Add
+                          </button>
+                          <AnimatePresence>
+                            {openDropdown === 'character' && (
+                              <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="absolute z-50 top-full mt-1 left-0 w-56 bg-[#1a0d2e]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl p-3 origin-top-left">
+                                <div className="text-[10px] font-bold text-white mb-2">Add character</div>
+                                <input
+                                  autoFocus
+                                  type="text"
+                                  placeholder="Character name (Enter to add)"
+                                  className="w-full bg-black/20 border border-white/10 rounded-lg px-2.5 py-2 text-[10px] text-white outline-none focus:border-[#a78bfa]/50 focus:ring-1 focus:ring-[#a78bfa]/30"
+                                  onKeyDown={async (e) => {
                                     if (e.key === 'Enter') {
                                       e.preventDefault();
                                       const val = e.currentTarget.value.trim();
                                       if (val && !characterNames.includes(val)) {
                                         const newChar = config.character ? `${config.character}, ${val}` : val;
-                                        updateNodeConfig(id, { character: newChar } as any);
+                                        updateNodeConfig(id, { character: newChar });
                                         e.currentTarget.value = '';
+                                        setOpenDropdown(null);
+                                        // Auto-generate portrait
+                                        generateCharImage(val);
                                       }
                                     }
                                   }}
                                 />
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </>
+                                <p className="text-[8px] text-zinc-600 mt-1.5">Portrait auto-generates in <span className="text-[#a78bfa]">{config.visualStyle}</span> style</p>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      </div>
                     )
                   })()}
                 </div>
@@ -650,15 +950,51 @@ export const VideoBriefNodeContent = memo(({ id, data, selected }: NodeProps<Nod
                   </button>
                   <AnimatePresence>
                     {openDropdown === 'captions' && (
-                      <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="absolute z-50 top-full mt-1 right-0 w-56 bg-[#1a0d2e] border border-white/10 rounded-2xl shadow-2xl p-2 origin-top-right">
+                      <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="absolute z-50 top-full mt-1 right-0 w-64 bg-[#1a0d2e] border border-white/10 rounded-2xl shadow-2xl p-2 origin-top-right">
+                        <style>{`
+                          @keyframes capGlow {
+                            0%, 100% { filter: brightness(1); opacity: 0.85; }
+                            50% { filter: brightness(2.2) saturate(1.5); opacity: 1; }
+                          }
+                          .cap-glow-anim { animation: capGlow 1.6s ease-in-out infinite; }
+                        `}</style>
                         <div className="text-[11px] font-bold text-white mb-2 ml-1">Captions</div>
-                        <div className="grid grid-cols-3 gap-1.5 max-h-[200px] overflow-y-auto nowheel custom-scrollbar p-1">
+                        <div className="grid grid-cols-3 gap-1.5 overflow-y-auto nowheel p-1">
                           {captionStyles.map(opt => (
-                            <button key={opt.id} onClick={() => { updateNodeConfig(id, { captions: opt.id }); setOpenDropdown(null) }} className={`aspect-square rounded-xl border flex items-center justify-center text-[7px] font-black uppercase transition-all overflow-hidden relative shadow-inner ${config.captions === opt.id ? 'border-[#3b82f6] shadow-[0_0_10px_rgba(59,130,246,0.3)] ring-1 ring-[#3b82f6]/50' : 'border-white/10 hover:border-white/30 bg-black/40'}`}>
-                              {opt.type === 'none' ? (
-                                <span className="text-zinc-500 text-lg">⊘</span>
-                              ) : (
-                                <span className="text-center px-1" style={{ color: opt.color, textShadow: opt.glow ? `0 0 6px ${opt.color}` : 'none' }}>{opt.label}</span>
+                            <button
+                              key={opt.id}
+                              onClick={() => { updateNodeConfig(id, { captions: opt.id }); setOpenDropdown(null) }}
+                              className={`rounded-xl border transition-all overflow-hidden relative ${config.captions === opt.id ? 'border-[#3b82f6] ring-1 ring-[#3b82f6]/50' : 'border-white/10 hover:border-white/30'}`}
+                              style={{ height: 60 }}
+                            >
+                              {/* Simulated video bg */}
+                              <div className="absolute inset-0 bg-gradient-to-b from-slate-700/60 to-black/80" />
+                              {/* Fake scene lines */}
+                              <div className="absolute inset-x-2 top-2 space-y-1 opacity-20">
+                                <div className="h-1 bg-white/40 rounded-full w-3/4" />
+                                <div className="h-1 bg-white/30 rounded-full w-1/2" />
+                              </div>
+                              {/* Caption text */}
+                              <div className="absolute inset-x-0 bottom-2 flex justify-center px-1">
+                                {opt.type === 'none' ? (
+                                  <span className="text-zinc-500 text-base">⊘</span>
+                                ) : (
+                                  <span
+                                    className={`text-[8px] font-black uppercase text-center leading-tight ${opt.glow ? 'cap-glow-anim' : ''}`}
+                                    style={{
+                                      color: opt.color,
+                                      textShadow: opt.glow ? `0 0 8px ${opt.color}, 0 0 16px ${opt.color}80` : 'none',
+                                    }}
+                                  >
+                                    {opt.label}
+                                  </span>
+                                )}
+                              </div>
+                              {/* Selected check */}
+                              {config.captions === opt.id && (
+                                <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-[#3b82f6] flex items-center justify-center z-10">
+                                  <Check className="w-2 h-2 text-white" />
+                                </div>
                               )}
                             </button>
                           ))}
@@ -669,12 +1005,44 @@ export const VideoBriefNodeContent = memo(({ id, data, selected }: NodeProps<Nod
                 </div>
               </div>
 
-              {/* Toggles & Small Inputs */}
+              {/* Scene Media — Dropdown with descriptions */}
               <div className="flex items-center justify-between pt-1">
                 <span className="text-[11px] text-zinc-400 w-24">Scene media</span>
-                <div className="flex-1 flex bg-white/5 p-0.5 rounded-lg border border-white/5">
-                  <button onClick={() => updateNodeConfig(id, { sceneMedia: 'Video clips' })} className={`flex-1 py-1 text-[10px] font-medium rounded-md transition-colors ${config.sceneMedia === 'Video clips' ? 'bg-white/10 text-white shadow-sm border border-white/10' : 'text-zinc-400 hover:text-white'}`}>Video clips</button>
-                  <button onClick={() => updateNodeConfig(id, { sceneMedia: 'Images' })} className={`flex-1 py-1 text-[10px] font-medium rounded-md transition-colors ${config.sceneMedia === 'Images' ? 'bg-white/10 text-white shadow-sm border border-white/10' : 'text-zinc-400 hover:text-white'}`}>Images</button>
+                <div className="flex-1 relative">
+                  <button {...dropdownButtonProps('sceneMedia')}>
+                    <div className="flex items-center gap-1.5">
+                      {config.sceneMedia === 'Images' ? <ImageIcon className="w-3.5 h-3.5 text-zinc-400" /> : <MonitorPlay className="w-3.5 h-3.5 text-zinc-400" />}
+                      <span className="text-[11px] text-white">{config.sceneMedia || 'Images'}</span>
+                    </div>
+                    <ChevronDown className="w-3 h-3 text-zinc-500" />
+                  </button>
+                  <AnimatePresence>
+                    {openDropdown === 'sceneMedia' && (
+                      <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="absolute z-50 top-full mt-1 right-0 w-56 bg-[#1a0d2e] border border-white/10 rounded-xl shadow-2xl p-1.5 origin-top-right">
+                        <div
+                          onClick={() => { updateNodeConfig(id, { sceneMedia: 'Images' }); setOpenDropdown(null) }}
+                          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${config.sceneMedia === 'Images' ? 'bg-white/10' : 'hover:bg-white/5'}`}
+                        >
+                          <ImageIcon className="w-4 h-4 text-zinc-400 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[11px] font-semibold text-white">Images</div>
+                            <div className="text-[9px] text-zinc-500">Use static image per scene</div>
+                          </div>
+                          {config.sceneMedia === 'Images' && <Check className="w-3.5 h-3.5 text-[#22d3ee] shrink-0" />}
+                        </div>
+                        <div
+                          className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-not-allowed opacity-50"
+                        >
+                          <MonitorPlay className="w-4 h-4 text-zinc-500 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[11px] font-semibold text-zinc-500">Video clips</div>
+                            <div className="text-[9px] text-zinc-600">Use video clip per scene</div>
+                          </div>
+                          <span className="text-[8px] font-bold text-white bg-[#22d3ee] px-1.5 py-0.5 rounded-full shrink-0">Pro</span>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
 
@@ -795,6 +1163,7 @@ export const FilmStripNodeContent = memo(({ id, data, selected }: NodeProps<Node
   const [showExportModal, setShowExportModal] = useState(false)
   const [showAvatarPreview, setShowAvatarPreview] = useState(false)
   const [showAvatarEdit, setShowAvatarEdit] = useState(false)
+  const [showContextMenu, setShowContextMenu] = useState<number | null>(null)
 
   const updateNodeConfig = useWorkspaceStore((s) => s.updateNodeConfig)
 
@@ -847,101 +1216,93 @@ export const FilmStripNodeContent = memo(({ id, data, selected }: NodeProps<Node
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
-          {scenes.map((scene, i) => (
-            <div
-              key={scene.id || i}
-              onClick={() => setActiveScene(i)}
-              onMouseEnter={() => setHoveredScene(i)}
-              onMouseLeave={() => setHoveredScene(null)}
-              className={`flex gap-3 p-3 rounded-xl cursor-pointer transition-all border ${activeScene === i ? 'bg-[#00B5CF]/10 border-[#00B5CF]/40' : 'bg-[#1a0d2e] border-white/5 hover:border-white/15'}`}
-            >
-              <div className="flex-1 space-y-1.5">
-                <div className="flex items-center gap-1.5 relative">
-                  <span className="text-[10px] text-zinc-500 font-medium tabular-nums">00:{String(scene.duration || 5).padStart(2, '0')}</span>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); setShowNarratorDropdown(showNarratorDropdown === i ? null : i) }}
-                    className="flex items-center gap-1 text-[9px] text-[#00B5CF] bg-[#00B5CF]/10 hover:bg-[#00B5CF]/20 px-1.5 py-0.5 rounded transition-colors border border-[#00B5CF]/20">
-                    <img src={currentNarrator.img} alt="" className="w-3 h-3 rounded-full object-cover" /> <span>{currentNarrator.name}</span>
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          {scenes.map((scene, i) => {
+            const isFaded = !scene.imageUrl && scene.status !== 'generating' && scene.status !== 'done'
+            return (
+              <div key={scene.id || i}>
+                <div
+                  onClick={() => { setActiveScene(i); setShowContextMenu(null) }}
+                  onMouseEnter={() => setHoveredScene(i)}
+                  onMouseLeave={() => { setHoveredScene(null); setShowContextMenu(null) }}
+                  className={`flex gap-3 px-3 py-3 cursor-pointer transition-all relative group ${activeScene === i ? 'bg-[#00B5CF]/10' : 'hover:bg-white/[0.03]'} ${isFaded ? 'opacity-40' : ''}`}
+                >
+                  {/* Drag handle */}
+                  <span className="absolute left-0.5 top-1/2 -translate-y-1/2 text-[10px] text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity select-none cursor-grab">⣿</span>
+
+                  <div className="flex-1 space-y-1.5 pl-2">
+                    {/* Meta row: time + narrator avatar + speaker */}
+                    <div className="flex items-center gap-1.5 relative">
+                      <span className="text-[10px] text-zinc-500 font-medium tabular-nums">00:{String(scene.duration || 5).padStart(2, '0')}</span>
+                      <div className="w-4 h-4 rounded-full bg-gradient-to-br from-[#7c3aed] to-[#4f46e5] flex items-center justify-center text-[7px] font-bold text-white shrink-0">{currentNarrator.name.charAt(0)}</div>
+                      <span className="text-[10px] text-zinc-500">{currentNarrator.name}</span>
+                    </div>
+                    {/* Script text */}
+                    <p className="text-[11px] text-zinc-300 leading-relaxed line-clamp-3">{scene.script || scene.description}</p>
+                  </div>
+
+                  {/* Thumbnail */}
+                  <div className="w-[80px] h-[56px] rounded-md overflow-hidden bg-black/60 flex-shrink-0 relative border border-white/10 flex items-center justify-center">
+                    {scene.imageUrl ? (
+                      <img src={scene.imageUrl} alt={`Scene ${i + 1}`} className="w-full h-full object-cover" />
+                    ) : scene.status === 'generating' ? (
+                      <Loader2 className="w-4 h-4 text-yellow-400 animate-spin" />
+                    ) : (
+                      <ImageIcon className="w-4 h-4 text-white/20" />
+                    )}
+                    {/* Thumbnail hover actions */}
+                    {hoveredScene === i && scene.imageUrl && (
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-1 z-10">
+                        <button onClick={(e) => { e.stopPropagation(); setShowMediaModal(i); }} className="p-1 hover:bg-white/20 rounded text-white transition-colors" title="Replace"><RefreshCw className="w-3 h-3" /></button>
+                        <button onClick={(e) => { e.stopPropagation(); setShowTrimModal(i); }} className="p-1 hover:bg-white/20 rounded text-white transition-colors" title="Trim"><Scissors className="w-3 h-3" /></button>
+                      </div>
+                    )}
+                    {/* Time badge */}
+                    <div className="absolute bottom-1 left-1 text-[8px] bg-black/70 px-1 rounded text-white font-medium tabular-nums">0:{String(scene.duration || 5).padStart(2, '0')}</div>
+                  </div>
+
+                  {/* ··· Context menu button */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setShowContextMenu(showContextMenu === i ? null : i) }}
+                    className="absolute top-2 right-2 text-zinc-600 hover:text-white transition-colors opacity-0 group-hover:opacity-100 p-0.5 hover:bg-white/10 rounded"
+                  >
+                    <MoreHorizontal className="w-3.5 h-3.5" />
                   </button>
-                  
-                  {/* Narrator Popover Anchor */}
-                  {showNarratorDropdown === i && (
-                    <div className="absolute top-full left-10 mt-1 w-64 bg-[#1a0d2e] border border-white/15 rounded-xl shadow-2xl z-50 overflow-hidden" onClick={e => e.stopPropagation()}>
-                      <div className="flex p-1 border-b border-white/10 bg-white/5">
-                        <button onClick={() => setNarratorTab('voice')} className={`flex-1 text-[10px] py-1.5 rounded-lg transition-colors ${narratorTab === 'voice' ? 'bg-white text-black font-semibold' : 'text-zinc-400 hover:text-white'}`}>Voice</button>
-                        <button onClick={() => setNarratorTab('avatar')} className={`flex-1 text-[10px] py-1.5 rounded-lg transition-colors ${narratorTab === 'avatar' ? 'bg-white text-black font-semibold' : 'text-zinc-400 hover:text-white'}`}>Avatar</button>
-                      </div>
-                      <div className="p-2">
-                        {narratorTab === 'voice' ? (
-                          <div className="space-y-2">
-                             <div className="p-3 bg-white/5 opacity-50 cursor-not-allowed rounded-lg border border-dashed border-white/20 text-center transition-colors">
-                               <p className="text-[10px] text-zinc-400 mb-1">Create your custom voices.</p>
-                               <span className="text-[10px] text-zinc-500 font-medium font-sans">Coming soon</span>
-                             </div>
-                             <div className="flex gap-2 px-1 mb-1 border-b border-white/5 pb-1">
-                               <span className="text-[9px] text-[#00B5CF] font-medium border-b border-[#00B5CF] pb-0.5 cursor-pointer">Favorites</span>
-                               <span className="text-[9px] text-zinc-600 cursor-not-allowed font-medium" title="Coming soon">Trending</span>
-                             </div>
-                             <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
-                               {narratorOptions.map(n => (
-                                 <div key={n.voiceId} className="flex items-center gap-2 p-1.5 hover:bg-white/10 rounded cursor-pointer transition-colors" onClick={() => { updateNodeConfig(id, { narratorVoiceId: n.voiceId } as any); }}>
-                                   <div className="relative">
-                                     <img src={n.img} className="w-6 h-6 rounded-full object-cover shadow-md" />
-                                     {config.narratorVoiceId === n.voiceId && <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-[#1a0d2e]"><Check className="w-2 h-2 text-white shadow-sm" /></div>}
-                                   </div>
-                                   <span className={`text-[10px] flex-1 ${config.narratorVoiceId === n.voiceId ? 'text-[#00B5CF] font-bold' : 'text-white'}`}>{n.name}</span>
-                                 </div>
-                               ))}
-                             </div>
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-3 gap-1 p-1 max-h-40 overflow-y-auto custom-scrollbar">
-                             {narratorOptions.map((n, idx) => (
-                               <div key={idx} className="aspect-square rounded border border-white/10 overflow-hidden relative group cursor-pointer" onClick={() => { setShowNarratorDropdown(null); setShowAvatarPreview(true); }}>
-                                 <img src={n.img} className="w-full h-full object-cover" />
-                                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-1 transition-opacity">
-                                    <button className="p-1 bg-white/20 rounded hover:bg-white/40"><Maximize2 className="w-3 h-3 text-white" /></button>
-                                 </div>
-                               </div>
-                             ))}
-                          </div>
-                        )}
-                        <button onClick={() => setShowNarratorDropdown(null)} className="w-full mt-2 py-1.5 bg-white text-black text-[10px] font-bold rounded-lg hover:bg-zinc-200 transition-colors flex items-center justify-center gap-1.5"><Check className="w-3 h-3"/> Apply to all scenes</button>
-                      </div>
+
+                  {/* Context menu dropdown */}
+                  {showContextMenu === i && (
+                    <div className="absolute top-8 right-2 w-28 bg-[#1a0d2e] border border-white/10 rounded-lg shadow-2xl z-50 p-1 overflow-hidden" onClick={e => e.stopPropagation()}>
+                      <button
+                        onClick={() => {
+                          const newScene = { ...scene, id: `scene-${Date.now()}-dup` }
+                          const updated = [...scenes]
+                          updated.splice(i + 1, 0, newScene)
+                          updateNodeConfig(id, { scenes: updated })
+                          setShowContextMenu(null)
+                        }}
+                        className="w-full text-left px-3 py-1.5 text-[10px] text-zinc-300 hover:bg-white/10 rounded flex items-center gap-2 transition-colors"
+                      >
+                        <Plus className="w-3 h-3" /> Duplicate
+                      </button>
+                      <button
+                        onClick={() => {
+                          const updated = scenes.filter((_, idx) => idx !== i)
+                          updateNodeConfig(id, { scenes: updated })
+                          setShowContextMenu(null)
+                          if (activeScene >= updated.length) setActiveScene(Math.max(0, updated.length - 1))
+                        }}
+                        className="w-full text-left px-3 py-1.5 text-[10px] text-red-400 hover:bg-red-500/10 rounded flex items-center gap-2 transition-colors"
+                      >
+                        <Trash className="w-3 h-3" /> Delete
+                      </button>
                     </div>
                   )}
                 </div>
-                <p className="text-[10px] text-zinc-300 leading-relaxed line-clamp-3 w-[90%]">{scene.script || scene.description}</p>
+                {/* Separator */}
+                {i < scenes.length - 1 && <div className="mx-3 border-t border-white/5" />}
               </div>
-
-              <div className="w-[84px] h-[48px] rounded-md overflow-hidden bg-black/60 flex-shrink-0 relative border border-white/10 flex items-center justify-center">
-                {scene.imageUrl ? (
-                  <img src={scene.imageUrl} alt={`Scene ${i + 1}`} className="w-full h-full object-cover opacity-80" />
-                ) : scene.status === 'generating' ? (
-                  <Loader2 className="w-4 h-4 text-yellow-400 animate-spin" />
-                ) : scene.status === 'done' ? (
-                  <span className="flex items-center justify-center w-5 h-5 rounded-full bg-green-500/20 border border-green-500/50">
-                    <Check className="w-3 h-3 text-green-400" />
-                  </span>
-                ) : scene.status === 'error' ? (
-                  <span className="flex items-center justify-center w-5 h-5 rounded-full bg-red-500/20 border border-red-500/50">
-                    <Square className="w-3 h-3 text-red-400" />
-                  </span>
-                ) : (
-                  <ImageIcon className="w-4 h-4 text-white/20" />
-                )}
-                {hoveredScene === i && (
-                  <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center gap-1 z-10">
-                    <button onClick={(e) => { e.stopPropagation(); setShowMediaModal(i); }} className="p-1.5 hover:bg-white/20 rounded-md text-white transition-colors" title="Replace"><RefreshCw className="w-3 h-3" /></button>
-                    <button onClick={(e) => { e.stopPropagation(); setShowTrimModal(i); }} className="p-1.5 hover:bg-white/20 rounded-md text-white transition-colors" title="Trim"><Scissors className="w-3 h-3" /></button>
-                    <button onClick={(e) => { e.stopPropagation(); }} className="p-1.5 hover:bg-white/20 rounded-md text-red-400 transition-colors" title="Delete"><Trash className="w-3 h-3" /></button>
-                  </div>
-                )}
-                <div className="absolute bottom-1 right-1 text-[8px] bg-black/60 px-1 rounded text-white font-medium z-0">00:{String(scene.duration || 5).padStart(2, '0')}</div>
-              </div>
-            </div>
-          ))}
+            )
+          })}
           {scenes.length === 0 && (
             <div className="p-4 text-center text-xs text-zinc-500">No scenes generated yet.</div>
           )}
@@ -949,8 +1310,23 @@ export const FilmStripNodeContent = memo(({ id, data, selected }: NodeProps<Node
       </div>
 
       {/* Right Pane: Video Preview */}
-      <div className="flex-1 flex flex-col p-6 bg-[#0F051D] rounded-r-2xl relative">
-        <div className="flex justify-between items-center mb-4">
+      <div className="flex-1 flex flex-col p-4 bg-[#0F051D] rounded-r-2xl relative">
+        {/* Tag row — style + elements */}
+        <div className="flex gap-2 items-center mb-3">
+          <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-full px-2.5 py-1 cursor-pointer hover:bg-white/10 transition-colors">
+            <div className="w-3.5 h-3.5 rounded-full bg-gradient-to-br from-[#7c3aed] to-[#4f46e5] flex items-center justify-center text-[6px] font-bold text-white shrink-0">{currentNarrator.name.charAt(0)}</div>
+            <span className="text-[10px] text-zinc-400 truncate max-w-[80px]">{config.visualStyle || 'Style'}</span>
+          </div>
+          <button
+            onClick={() => { setShowElementsPanel(v => !v); setShowMusicPanel(false) }}
+            className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors ${showElementsPanel ? 'bg-white text-black' : 'bg-white/90 text-black hover:bg-white'}`}
+          >
+            <div className="w-3.5 h-3.5 bg-emerald-500 rounded-full flex items-center justify-center"><Check className="w-2 h-2 text-white" /></div>
+            Elements
+          </button>
+        </div>
+
+        <div className="flex justify-between items-center mb-3">
           <div className="flex gap-2">
             <button onClick={() => setShowExportModal(true)} className="px-3 py-1.5 bg-[#00B5CF] hover:bg-[#009ab0] text-black font-semibold text-[10px] rounded-lg transition-colors flex items-center gap-1"><Download className="w-3 h-3" /> Export</button>
             <button className="px-3 py-1.5 bg-white/10 hover:bg-white/15 text-white font-semibold text-[10px] rounded-lg transition-colors border border-white/5">Edit more</button>
@@ -987,7 +1363,7 @@ export const FilmStripNodeContent = memo(({ id, data, selected }: NodeProps<Node
                       {name: 'Deep background', artist: 'Ambient Sounds', time: '05:30'},
                       {name: 'Orchestral Sweep', artist: 'Epic Music', time: '02:20'}
                     ].map(m => (
-                      <div key={m.name} className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors group ${(config as any).music === m.name ? 'bg-white/10' : 'hover:bg-white/5'}`} onClick={() => { updateNodeConfig(id, { music: m.name } as any); setShowMusicPanel(false) }}>
+                      <div key={m.name} className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors group ${(config as any).music === m.name ? 'bg-white/10' : 'hover:bg-white/5'}`} onClick={() => { updateNodeConfig(id, { music: m.name }); setShowMusicPanel(false) }}>
                         <div className="flex items-center gap-2 overflow-hidden">
                           <div className="w-8 h-8 rounded shrink-0 bg-white/5 flex items-center justify-center relative border border-white/10">
                             <Music className="w-3.5 h-3.5 text-zinc-500" />

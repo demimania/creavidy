@@ -6,9 +6,13 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Auth optional for dev/testing — deduct credits only if logged in
+    let userId: string | null = null
+    try {
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      userId = user?.id || null
+    } catch {}
 
     const body = await req.json()
     const { model, prompt, width, height, style } = body
@@ -23,7 +27,9 @@ export async function POST(req: NextRequest) {
     })
 
     // FAZ 1: UX-first — deduct silently, don't block on insufficient credits
-    await deductCredit({ userId: user.id, amount: result.cost, description: 'Image generation', modelId: model }).catch(() => {})
+    if (userId) {
+      await deductCredit({ userId, amount: result.cost, description: 'Image generation', modelId: model }).catch(() => {})
+    }
 
     return NextResponse.json({ success: true, imageUrl: result.imageUrl, requestId: result.requestId, creditsUsed: result.cost })
   } catch (error: any) {

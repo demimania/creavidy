@@ -11,6 +11,14 @@ import { executeSingleNode } from '@/lib/ai/execution-engine'
 import { toast } from 'sonner'
 import { VideoBriefNodeContent, FilmStripNodeContent } from './CapCutNodes'
 
+// Highlight ring class for card badge navigation
+function useNodeHighlight(id: string) {
+  return useWorkspaceStore((s) => s.highlightedNodeId === id)
+}
+function highlightClasses(isHighlighted: boolean) {
+  return isHighlighted ? 'animate-pulse ring-2 ring-[#a78bfa] ring-offset-2 ring-offset-[#0F051D]' : ''
+}
+
 const STATUS_ICONS: Record<NodeStatus, React.ReactNode> = {
   idle:       <Clock className="w-3 h-3 text-zinc-500" />,
   pending:    <Clock className="w-3 h-3 text-[#FFE744]" />,
@@ -89,11 +97,12 @@ const ScriptNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) => 
   const color = NODE_COLORS.script
   const updateNodeConfig = useWorkspaceStore((s) => s.updateNodeConfig)
   const config = data.config as ScriptConfig
+  const isHighlighted = useNodeHighlight(id)
 
   return (
     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-      className={`relative w-[280px] rounded-xl border transition-all ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'}`}
-      style={{ borderColor: selected ? color : 'rgba(255,255,255,0.10)', boxShadow: selected ? `0 0 25px ${color}20` : undefined }}>
+      className={`relative w-[280px] rounded-xl border transition-all ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'} ${highlightClasses(isHighlighted)}`}
+      style={{ borderColor: selected ? color : isHighlighted ? '#a78bfa' : 'rgba(255,255,255,0.10)', boxShadow: selected ? `0 0 25px ${color}20` : isHighlighted ? '0 0 40px rgba(167,139,250,0.3)' : undefined }}>
 
       {/* Header */}
       <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `${color}10` }}>
@@ -173,11 +182,12 @@ ScriptNodeContent.displayName = 'ScriptNode'
 
 const VoiceNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) => {
   const color = NODE_COLORS.voice
+  const isHighlighted = useNodeHighlight(id)
 
   return (
     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-      className={`relative w-[260px] rounded-xl border transition-all ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'}`}
-      style={{ borderColor: selected ? color : 'rgba(255,255,255,0.10)', boxShadow: selected ? `0 0 25px ${color}20` : undefined }}>
+      className={`relative w-[260px] rounded-xl border transition-all ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'} ${highlightClasses(isHighlighted)}`}
+      style={{ borderColor: selected ? color : isHighlighted ? '#a78bfa' : 'rgba(255,255,255,0.10)', boxShadow: selected ? `0 0 25px ${color}20` : isHighlighted ? '0 0 40px rgba(167,139,250,0.3)' : undefined }}>
 
       <Handle type="target" position={Position.Left} id="voice-in"
         className="!w-3 !h-3 !rounded-full !border-2 !border-[#0F051D]" style={{ backgroundColor: color }} />
@@ -278,11 +288,12 @@ const ImageGenNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) =
   const color = NODE_COLORS.imageGen
   const imgConfig = data.config as ImageGenConfig
   const extraInputCount = Math.min((imgConfig as any).extraInputCount || 0, 3)
+  const isHighlighted = useNodeHighlight(id)
 
   return (
     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-      className={`relative w-[280px] rounded-xl border transition-all ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'}`}
-      style={{ borderColor: selected ? color : 'rgba(255,255,255,0.10)', boxShadow: selected ? `0 0 25px ${color}20` : undefined }}>
+      className={`relative w-[280px] rounded-xl border transition-all ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'} ${highlightClasses(isHighlighted)}`}
+      style={{ borderColor: selected ? color : isHighlighted ? '#a78bfa' : 'rgba(255,255,255,0.10)', boxShadow: selected ? `0 0 25px ${color}20` : isHighlighted ? '0 0 40px rgba(167,139,250,0.3)' : undefined }}>
 
       {/* Main prompt handle */}
       <Handle type="target" position={Position.Left} id="img-in-prompt"

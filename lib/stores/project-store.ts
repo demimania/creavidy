@@ -95,7 +95,7 @@ const initialState = {
     referenceImageUrl: null,
     style: 'realistic',
     voice: null,
-    duration: 15,
+    duration: 60,
     aspectRatio: '16:9',
     platform: 'youtube',
     scenes: [],

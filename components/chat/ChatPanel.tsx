@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { ChatMessage, type ChatMessageData } from './ChatMessage'
-import { ChatInput } from './ChatInput'
+import { ChatInput, type SuggestedAction } from './ChatInput'
 import { Bot, Sparkles } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import type { PipelineState } from '@/lib/hooks/use-orchestrate-pipeline'
 
 export interface Scene {
   scene_order: number
@@ -33,6 +34,17 @@ function extractScenePlan(text: string): ScenePlan | null {
   return null
 }
 
+/** Extract partial brief field updates from ```brief_update blocks */
+function extractBriefUpdate(text: string): Record<string, unknown> | null {
+  const match = text.match(/```brief_update\s*([\s\S]*?)```/)
+  if (!match) return null
+  try {
+    const parsed = JSON.parse(match[1])
+    if (typeof parsed === 'object' && parsed !== null) return parsed
+  } catch { /* ignore */ }
+  return null
+}
+
 interface ChatPanelProps {
   projectId?: string
   initialPrompt?: string
@@ -40,6 +52,23 @@ interface ChatPanelProps {
   durationSeconds?: number
   aspectRatio?: string
   onScenesDetected?: (plan: ScenePlan) => void
+  onCardBadgeClick?: (cardId: string) => void
+  /** Messages injected from parent (tool_call, card_badge, etc.) */
+  injectedMessages?: ChatMessageData[]
+  /** Called after injected messages are consumed */
+  onInjectedConsumed?: () => void
+  /** Current brief config — sent as context so AI can revise */
+  briefContext?: Record<string, unknown> | null
+  /** Called when AI returns a partial brief_update (field-level changes) */
+  onBriefUpdate?: (updates: Record<string, unknown>) => void
+  /** Context-aware suggested action chips above input */
+  suggestedActions?: SuggestedAction[]
+  /** Called when user clicks "Generate now" action */
+  onGenerateNow?: () => void
+  /** Pipeline execution state for progress bar */
+  pipelineState?: PipelineState
+  /** In-place message updates (id → partial updates) */
+  messageUpdates?: Map<string, Partial<ChatMessageData>>
 }
 
 const WELCOME_MESSAGE: ChatMessageData = {
@@ -55,13 +84,40 @@ export function ChatPanel({
   durationSeconds = 30,
   aspectRatio = '16:9',
   onScenesDetected,
+  onCardBadgeClick,
+  injectedMessages,
+  onInjectedConsumed,
+  briefContext,
+  onBriefUpdate,
+  suggestedActions,
+  onGenerateNow,
+  pipelineState,
+  messageUpdates,
 }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessageData[]>([WELCOME_MESSAGE])
   const [isLoading, setIsLoading] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
   const abortRef = useRef<AbortController | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+
+  // Consume injected messages from parent
+  useEffect(() => {
+    if (injectedMessages && injectedMessages.length > 0) {
+      setMessages(prev => [...prev, ...injectedMessages])
+      onInjectedConsumed?.()
+    }
+  }, [injectedMessages, onInjectedConsumed])
   const initialPromptSent = useRef(false)
+
+  // Apply in-place updates to messages (tool_call running → success)
+  const displayMessages = useMemo(() => {
+    if (!messageUpdates || messageUpdates.size === 0) return messages
+    return messages.map(msg => {
+      const updates = messageUpdates.get(msg.id)
+      if (!updates) return msg
+      return { ...msg, ...updates }
+    })
+  }, [messages, messageUpdates])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -76,6 +132,11 @@ export function ChatPanel({
   }, [initialPrompt])
 
   const sendMessage = useCallback(async (content: string) => {
+    // Intercept __GENERATE_NOW__ magic command
+    if (content === '__GENERATE_NOW__') {
+      onGenerateNow?.()
+      return
+    }
     if (isLoading) return
 
     const userMessage: ChatMessageData = {
@@ -106,6 +167,7 @@ export function ChatPanel({
           style,
           duration_seconds: durationSeconds,
           aspect_ratio: aspectRatio,
+          brief_context: briefContext || undefined,
         }),
       })
 
@@ -146,10 +208,15 @@ export function ChatPanel({
       setMessages(prev => [...prev, assistantMessage])
       setStreamingContent('')
 
-      // Parse scene plan and emit to parent
+      // Parse scene plan (full replacement) or brief_update (partial fields)
       const plan = extractScenePlan(accumulated)
       if (plan && onScenesDetected) {
         onScenesDetected(plan)
+      } else {
+        const briefUpdate = extractBriefUpdate(accumulated)
+        if (briefUpdate && onBriefUpdate) {
+          onBriefUpdate(briefUpdate)
+        }
       }
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') return
@@ -163,7 +230,7 @@ export function ChatPanel({
       setIsLoading(false)
       abortRef.current = null
     }
-  }, [messages, isLoading, projectId, style, durationSeconds, aspectRatio, onScenesDetected])
+  }, [messages, isLoading, projectId, style, durationSeconds, aspectRatio, onScenesDetected, briefContext, onBriefUpdate, onGenerateNow])
 
   const handleStop = () => {
     abortRef.current?.abort()
@@ -206,10 +273,32 @@ export function ChatPanel({
         </div>
       </div>
 
+      {/* Pipeline progress bar */}
+      {pipelineState?.isRunning && (
+        <div className="px-4 py-2 border-b border-white/10 bg-black/20 flex-shrink-0">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-medium text-[#a78bfa]">
+              {pipelineState.currentStep?.replace(/_/g, ' ') || 'Starting...'}
+            </span>
+            <span className="text-[10px] text-zinc-500">
+              {pipelineState.completedSteps}/{pipelineState.totalSteps}
+            </span>
+          </div>
+          <div className="h-1 bg-white/[0.06] rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-gradient-to-r from-[#a78bfa] to-[#06d6a0] rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${pipelineState.progress}%` }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         <AnimatePresence>
-          {messages.map((msg) => (
-            <ChatMessage key={msg.id} message={msg} />
+          {displayMessages.map((msg) => (
+            <ChatMessage key={msg.id} message={msg} onCardBadgeClick={onCardBadgeClick} />
           ))}
           {streamingContent && (
             <ChatMessage
@@ -249,6 +338,7 @@ export function ChatPanel({
         isLoading={isLoading}
         onStop={handleStop}
         placeholder="Describe your next scene idea or ask a question..."
+        suggestedActions={suggestedActions}
       />
     </div>
   )

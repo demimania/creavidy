@@ -6,9 +6,13 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Auth optional for dev/testing — deduct credits only if logged in
+    let userId: string | null = null
+    try {
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      userId = user?.id || null
+    } catch {}
 
     const body = await req.json()
     const { model, prompt, sceneCount, language } = body
@@ -17,8 +21,11 @@ export async function POST(req: NextRequest) {
     const result = await generateScript({ model: model || 'gpt-4o', prompt, sceneCount: sceneCount || 5, language: language || 'English' })
 
     // FAZ 1: UX-first — deduct silently, don't block on insufficient credits
-    await deductCredit({ userId: user.id, amount: result.cost, description: 'Script generation', modelId: model }).catch(() => {})
+    if (userId) {
+      await deductCredit({ userId, amount: result.cost, description: 'Script generation', modelId: model }).catch(() => {})
+    }
 
+    console.log('[/api/generate/script] characters:', JSON.stringify(result.characters))
     return NextResponse.json({ success: true, script: result.script, characters: result.characters, creditsUsed: result.cost })
   } catch (error: any) {
     console.error('[/api/generate/script]', error)

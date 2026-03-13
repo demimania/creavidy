@@ -5,6 +5,7 @@
 
 import { useWorkspaceStore, type NodeData } from '@/lib/stores/workspace-store'
 import type { Node, Edge } from 'reactflow'
+import { withRetry, isRetryableError } from '@/lib/utils/retry'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -25,7 +26,7 @@ const NODE_API_MAP: Record<string, string> = {
   videoGen:    '/api/generate/video',
   caption:     '/api/generate/caption',
   export:      '/api/generate/video',  // export uses final composited video
-  videoBrief:  '/api/generate/video-brief',
+  videoBrief:  '/api/generate/script',
 }
 
 // ── Build body from node config ─────────────────────────────────────────────
@@ -75,14 +76,11 @@ function buildRequestBody(node: Node<NodeData>, parentOutputs: Record<string, st
 
     case 'videoBrief': {
       const c = config as Record<string, any>
+      const durationToScenes: Record<string, number> = { '30': 3, '60': 5, '180': 10 }
       return {
-        prompt: c.prompt || '',
-        theme: c.theme,
-        visualStyle: c.visualStyle,
-        narrator: c.narrator,
-        duration: c.duration,
-        aspect: c.aspect,
-        sceneCount: c.sceneCount,
+        model: 'gemini-2.0',
+        prompt: `${c.prompt || ''}${c.theme ? '. Theme: ' + c.theme : ''}${c.visualStyle ? '. Visual style: ' + c.visualStyle : ''}. IMPORTANT: Each scene MUST be strictly 10 seconds or less.`,
+        sceneCount: durationToScenes[String(c.duration)] || 5,
         language: c.language || 'English',
       }
     }
@@ -165,6 +163,7 @@ function getParentOutputs(nodeId: string, edges: Edge[], results: Record<string,
 async function executeNode(
   node: Node<NodeData>,
   parentOutputs: Record<string, string>,
+  onRetry?: (attempt: number, error: Error) => void,
 ): Promise<ExecutionResult> {
   const endpoint = NODE_API_MAP[node.data.type]
   if (!endpoint) {
@@ -174,22 +173,32 @@ async function executeNode(
   try {
     const body = buildRequestBody(node, parentOutputs)
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
+    const data = await withRetry(
+      async () => {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
 
-    const data = await response.json()
+        const json = await response.json()
 
-    if (!response.ok || data.error) {
-      return {
-        nodeId: node.id,
-        success: false,
-        error: data.error || `HTTP ${response.status}`,
-        creditsUsed: 0,
-      }
-    }
+        if (!response.ok || json.error) {
+          const errMsg = json.error || `HTTP ${response.status}`
+          throw new Error(errMsg)
+        }
+
+        return json
+      },
+      {
+        maxRetries: 3,
+        initialDelay: 1500,
+        onRetry: (attempt, error) => {
+          onRetry?.(attempt, error)
+        },
+        shouldRetry: isRetryableError,
+      },
+    )
 
     // Extract output URL based on node type
     const outputUrl = data.imageUrl || data.videoUrl || data.audioUrl || data.script || ''

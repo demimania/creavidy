@@ -1,8 +1,11 @@
 // ============================================================================
-// Workspace Store — Node canvas state, connection rules, node configs
+// Workspace Store — Node canvas state, connection rules, node configs,
+// agent conversation, brief management, storyboard state
 // ============================================================================
 import { create } from 'zustand'
 import type { Node, Edge } from 'reactflow'
+import type { ChatMessageData } from '@/components/chat/ChatMessage'
+import type { StoryboardData, ToolCallName, ToolCallStatus } from '@/lib/ai/tool-call-types'
 
 // ── Node colors ──────────────────────────────────────────────────────────────
 export const NODE_COLORS: Record<string, string> = {
@@ -103,6 +106,7 @@ export interface VideoBriefConfig {
   visualStyle: string;
   narrator: string;
   character: string;
+  characterImageUrls: Record<string, string>;
   music: string;
   captions: string;
   sceneMedia: string;
@@ -110,6 +114,8 @@ export interface VideoBriefConfig {
   aspect: string;
   platform: string;
   outline: string[];
+  autoGenerate?: boolean;
+  cachedScenes?: any[];
 }
 
 export interface FilmStripConfig {
@@ -141,21 +147,46 @@ export interface NodeData {
   creditsCost?: number
 }
 
+// ── Agent (conversation) state ────────────────────────────────────────────────
+export interface AgentState {
+  messages: ChatMessageData[]
+  isStreaming: boolean
+  currentToolCall: { name: ToolCallName; status: ToolCallStatus } | null
+}
+
+// ── Brief management (per-node brief data) ──────────────────────────────────
+export interface BriefEntry {
+  nodeId: string
+  data: VideoBriefConfig
+  storyboard: StoryboardData | null
+  videoUrl: string | null
+  createdAt: number
+  updatedAt: number
+}
+
 interface WorkspaceState {
   projectId: string | null
   projectTitle: string
   nodes: Node<NodeData>[]
   edges: Edge[]
   selectedNodeId: string | null
+  highlightedNodeId: string | null
 
   // Context menu
   contextMenu: { x: number; y: number; canvasX: number; canvasY: number } | null
+
+  // Agent conversation state
+  agent: AgentState
+
+  // Brief store (nodeId → BriefEntry)
+  briefs: Record<string, BriefEntry>
 
   setProjectId: (id: string) => void
   setProjectTitle: (title: string) => void
   setNodes: (nodes: Node<NodeData>[]) => void
   setEdges: (edges: Edge[]) => void
   selectNode: (id: string | null) => void
+  highlightNode: (id: string | null) => void
   updateNodeConfig: (nodeId: string, config: Record<string, unknown>) => void
   updateNodeStatus: (nodeId: string, status: NodeStatus) => void
   updateNodeOutput: (nodeId: string, outputUrl: string) => void
@@ -164,6 +195,21 @@ interface WorkspaceState {
   removeNode: (nodeId: string) => void
   duplicateNode: (nodeId: string) => void
   setContextMenu: (menu: { x: number; y: number; canvasX: number; canvasY: number } | null) => void
+
+  // Agent actions
+  setAgentMessages: (messages: ChatMessageData[]) => void
+  addAgentMessage: (message: ChatMessageData) => void
+  updateAgentMessage: (id: string, updates: Partial<ChatMessageData>) => void
+  setAgentStreaming: (isStreaming: boolean) => void
+  setCurrentToolCall: (toolCall: { name: ToolCallName; status: ToolCallStatus } | null) => void
+
+  // Brief actions
+  createBrief: (nodeId: string, data: VideoBriefConfig) => void
+  updateBriefField: (nodeId: string, field: string, value: unknown) => void
+  setBriefStoryboard: (nodeId: string, storyboard: StoryboardData) => void
+  setBriefVideoUrl: (nodeId: string, videoUrl: string) => void
+  getBrief: (nodeId: string) => BriefEntry | undefined
+
   _history: Array<{ nodes: Node<NodeData>[], edges: Edge[] }>
   _historyFuture: Array<{ nodes: Node<NodeData>[], edges: Edge[] }>
   _pushHistory: () => void
@@ -192,6 +238,7 @@ export const DEFAULT_CONFIGS: Record<string, AnyNodeConfig> = {
     visualStyle: 'Cartoon 3D',
     narrator: 'Lady Holiday',
     character: '',
+    characterImageUrls: {},
     music: 'Deep background',
     captions: 'Vlog',
     sceneMedia: 'Images',
@@ -245,13 +292,24 @@ export const DEFAULT_EDGES: Edge[] = [
   { id: 'e-video-export', source: 'video-1', target: 'export-1', type: 'labeled', style: { stroke: NODE_COLORS.videoGen, strokeWidth: 2 }, animated: true, data: { label: 'Video' } },
 ]
 
-export const useWorkspaceStore = create<WorkspaceState>((set) => ({
+export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   projectId: null,
   projectTitle: 'Untitled Project',
   nodes: DEFAULT_NODES,
   edges: DEFAULT_EDGES,
   selectedNodeId: null,
+  highlightedNodeId: null,
   contextMenu: null,
+
+  // Agent conversation state
+  agent: {
+    messages: [],
+    isStreaming: false,
+    currentToolCall: null,
+  },
+
+  // Brief store
+  briefs: {},
 
   _history: [],
   _historyFuture: [],
@@ -261,6 +319,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   setNodes: (nodes) => set({ nodes }),
   setEdges: (edges) => set({ edges }),
   selectNode: (id) => set({ selectedNodeId: id }),
+  highlightNode: (id) => set({ highlightedNodeId: id }),
   setContextMenu: (menu) => set({ contextMenu: menu }),
 
   _pushHistory: () => set((state) => ({
@@ -358,4 +417,84 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
     }
     return { nodes: [...state.nodes, newNode], selectedNodeId: newNodeId }
   }),
+
+  // ── Agent actions ───────────────────────────────────────────────────────────
+  setAgentMessages: (messages) => set((state) => ({
+    agent: { ...state.agent, messages },
+  })),
+
+  addAgentMessage: (message) => set((state) => ({
+    agent: { ...state.agent, messages: [...state.agent.messages, message] },
+  })),
+
+  updateAgentMessage: (id, updates) => set((state) => ({
+    agent: {
+      ...state.agent,
+      messages: state.agent.messages.map(m =>
+        m.id === id ? { ...m, ...updates } : m
+      ),
+    },
+  })),
+
+  setAgentStreaming: (isStreaming) => set((state) => ({
+    agent: { ...state.agent, isStreaming },
+  })),
+
+  setCurrentToolCall: (toolCall) => set((state) => ({
+    agent: { ...state.agent, currentToolCall: toolCall },
+  })),
+
+  // ── Brief actions ──────────────────────────────────────────────────────────
+  createBrief: (nodeId, data) => set((state) => ({
+    briefs: {
+      ...state.briefs,
+      [nodeId]: {
+        nodeId,
+        data,
+        storyboard: null,
+        videoUrl: null,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      },
+    },
+  })),
+
+  updateBriefField: (nodeId, field, value) => set((state) => {
+    const existing = state.briefs[nodeId]
+    if (!existing) return state
+    return {
+      briefs: {
+        ...state.briefs,
+        [nodeId]: {
+          ...existing,
+          data: { ...existing.data, [field]: value } as VideoBriefConfig,
+          updatedAt: Date.now(),
+        },
+      },
+    }
+  }),
+
+  setBriefStoryboard: (nodeId, storyboard) => set((state) => {
+    const existing = state.briefs[nodeId]
+    if (!existing) return state
+    return {
+      briefs: {
+        ...state.briefs,
+        [nodeId]: { ...existing, storyboard, updatedAt: Date.now() },
+      },
+    }
+  }),
+
+  setBriefVideoUrl: (nodeId, videoUrl) => set((state) => {
+    const existing = state.briefs[nodeId]
+    if (!existing) return state
+    return {
+      briefs: {
+        ...state.briefs,
+        [nodeId]: { ...existing, videoUrl, updatedAt: Date.now() },
+      },
+    }
+  }),
+
+  getBrief: (nodeId) => get().briefs[nodeId],
 }))

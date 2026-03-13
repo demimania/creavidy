@@ -448,7 +448,7 @@ export function NodeDetailPanel() {
 
   if (!selectedNode) {
     return (
-      <div className="w-72 border-l border-white/10 bg-black/20 backdrop-blur-xl flex items-center justify-center p-6">
+      <div className="flex-1 flex items-center justify-center p-6">
         <p className="text-xs text-zinc-600 text-center">Click a node on the canvas to see its settings</p>
       </div>
     )
@@ -460,7 +460,7 @@ export function NodeDetailPanel() {
 
   return (
     <motion.div key={selectedNode.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-      className="w-72 border-l border-white/10 bg-black/20 backdrop-blur-xl overflow-y-auto">
+      className="flex-1 overflow-y-auto">
       <div className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-white">{selectedNode.data.label}</h3>

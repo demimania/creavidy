@@ -255,7 +255,7 @@ export async function generateScript(params: {
         messages: [
           {
             role: 'system',
-            content: `You are a professional video script writer. Generate a video script with exactly ${params.sceneCount} scenes in ${params.language}. Each scene must have: scene_number, visual_description, narration, duration_seconds. Return as a JSON object with a "scenes" key containing the array, and a "characters" key containing an array of strings representing the names of the main characters in the script.`
+            content: `You are a professional video script writer. Generate a video script with exactly ${params.sceneCount} scenes in ${params.language}. Each scene must have: scene_number, visual_description, narration, duration_seconds. Return as a JSON object with a "scenes" key containing the array, and a "characters" key containing an array of strings (max 5) of the character names EXPLICITLY mentioned in the user's prompt — do NOT invent new characters that are not in the prompt.`
           },
           { role: 'user', content: params.prompt }
         ],
@@ -282,7 +282,7 @@ export async function generateScript(params: {
       body: JSON.stringify({
         contents: [{
           parts: [{
-            text: `You are a professional video script writer. Generate a video script with exactly ${params.sceneCount} scenes in ${params.language}. Each scene: scene_number, visual_description, narration, duration_seconds. Return a JSON object with a "scenes" key containing the array, and a "characters" key containing an array of strings representing the names of the main characters in the script.\n\nPrompt: ${params.prompt}`
+            text: `You are a professional video script writer. Generate a video script with exactly ${params.sceneCount} scenes in ${params.language}. Each scene: scene_number, visual_description, narration, duration_seconds. Return a JSON object with a "scenes" key containing the array, and a "characters" key containing an array of strings (max 5) of the character names EXPLICITLY mentioned in the user's prompt — do NOT invent new characters that are not in the prompt.\n\nPrompt: ${params.prompt}`
           }]
         }],
         generationConfig: { temperature: 0.7, responseMimeType: 'application/json' },

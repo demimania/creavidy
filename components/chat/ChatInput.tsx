@@ -4,12 +4,19 @@ import { useRef, useState, KeyboardEvent } from 'react'
 import { Send, Loader2, Square } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
+export interface SuggestedAction {
+  label: string
+  prompt: string
+  icon?: string
+}
+
 interface ChatInputProps {
   onSend: (message: string) => void
   isLoading?: boolean
   onStop?: () => void
   placeholder?: string
   disabled?: boolean
+  suggestedActions?: SuggestedAction[]
 }
 
 export function ChatInput({
@@ -18,6 +25,7 @@ export function ChatInput({
   onStop,
   placeholder = 'Type a message...',
   disabled,
+  suggestedActions,
 }: ChatInputProps) {
   const [value, setValue] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -49,6 +57,23 @@ export function ChatInput({
 
   return (
     <div className="border-t border-white/10 bg-black/20 backdrop-blur-xl p-4">
+      {/* Suggested actions */}
+      {suggestedActions && suggestedActions.length > 0 && !isLoading && (
+        <div className="flex flex-wrap gap-1.5 mb-2.5">
+          {suggestedActions.map((action, i) => (
+            <button
+              key={i}
+              onClick={() => onSend(action.prompt)}
+              disabled={disabled}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white/[0.04] border border-white/10 text-zinc-400 hover:text-white hover:border-[#a78bfa]/40 hover:bg-[#a78bfa]/10 transition-all disabled:opacity-30"
+            >
+              {action.icon && <span className="text-[10px]">{action.icon}</span>}
+              {action.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="flex items-end gap-3 bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3 focus-within:border-[#a78bfa]/50 transition-colors">
         <textarea
           ref={textareaRef}
