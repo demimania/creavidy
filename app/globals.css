@@ -2,6 +2,11 @@
 
 @plugin "tailwindcss-animate";
 
+@layer base {
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
+  .hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+}
+
 :root {
   /* Neo-Creator Theme: Dark Mode Default */
   /* Background: #0F051D -> HSL(264, 71%, 7%) */

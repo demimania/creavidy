@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useClickOutside } from '@/lib/hooks/use-click-outside'
 import { motion } from 'framer-motion'
 import { Play, Trash2, Upload, ChevronDown, Coins, Download, ExternalLink } from 'lucide-react'
 import {
@@ -49,11 +50,13 @@ function Dropdown({ label, value, options, onChange, color }: {
 }) {
   const [open, setOpen] = useState(false)
   const selected = options.find(o => o.value === value)
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const dropdownRef = useClickOutside(() => setOpen(false), open, btnRef)
 
   return (
     <div className="relative">
       <SectionLabel>{label}</SectionLabel>
-      <button onClick={() => setOpen(!open)}
+      <button ref={btnRef} onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-white/[0.04] border border-white/10 text-xs text-white hover:border-white/20 transition-all">
         <span>{selected?.label || value}</span>
         <div className="flex items-center gap-1.5">
@@ -64,7 +67,7 @@ function Dropdown({ label, value, options, onChange, color }: {
         </div>
       </button>
       {open && (
-        <div className="absolute top-full left-0 right-0 mt-1 rounded-lg bg-[#1a0d2e] border border-white/15 shadow-xl z-50 py-1 max-h-[220px] overflow-y-auto">
+        <div ref={dropdownRef} className="absolute top-full left-0 right-0 mt-1 rounded-lg bg-[#1a0d2e] border border-white/15 shadow-xl z-50 py-1 max-h-[220px] overflow-y-auto">
           {options.map(opt => (
             <button key={opt.value} onClick={() => { onChange(opt.value); setOpen(false) }}
               className={`w-full flex items-center justify-between px-3 py-2 text-[11px] transition-all ${value === opt.value ? 'font-semibold' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}

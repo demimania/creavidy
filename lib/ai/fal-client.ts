@@ -95,6 +95,7 @@ export async function generateImage(params: {
     },
   })
 
+  console.log('[generateImage] result.data:', JSON.stringify(result.data).slice(0, 500))
   return {
     imageUrl: (result.data as any)?.images?.[0]?.url || '',
     requestId: result.requestId,

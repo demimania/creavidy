@@ -285,10 +285,11 @@ function WorkspaceContent() {
           {!chatOpen && (
             <button
               onClick={() => { setChatOpen(true); setChatMinimized(false) }}
-              className="absolute bottom-14 left-4 z-30 w-11 h-11 rounded-full bg-gradient-to-br from-[#a78bfa] to-[#06d6a0] flex items-center justify-center shadow-lg shadow-[#a78bfa]/20 hover:scale-105 transition-transform"
+              className="absolute bottom-14 left-4 z-30 flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-[#a78bfa] to-[#06d6a0] text-white text-[11px] font-semibold shadow-lg shadow-[#a78bfa]/30 hover:opacity-90 hover:scale-105 transition-all"
               title="Open AI Chat"
             >
-              <MessageSquare className="w-5 h-5 text-white" />
+              <MessageSquare className="w-4 h-4" />
+              AI Chat
             </button>
           )}
 
@@ -365,8 +366,8 @@ function WorkspaceContent() {
           </div>
         )}
 
-        {/* Properties toggle when panel closed + node selected */}
-        {!propertiesOpen && selectedNodeId && (
+        {/* Properties toggle — always visible when panel closed */}
+        {!propertiesOpen && (
           <div className="flex flex-col items-center py-3 px-1.5 border-l border-white/10 bg-black/20">
             <button
               onClick={() => setPropertiesOpen(true)}
@@ -374,7 +375,7 @@ function WorkspaceContent() {
               title="Open Properties"
             >
               <Settings2 className="w-3.5 h-3.5" />
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#D1FE17] rounded-full" />
+              {selectedNodeId && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#D1FE17] rounded-full" />}
             </button>
           </div>
         )}

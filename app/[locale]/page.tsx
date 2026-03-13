@@ -205,7 +205,7 @@ export default function LandingPage() {
             </nav>
 
             {/* Hero Section — Prompt + 3D Robot */}
-            <section className="relative pt-28 pb-16 md:pt-36 md:pb-20 overflow-hidden">
+            <section className="relative pt-20 pb-10 md:pt-24 md:pb-14 overflow-hidden">
                 <div className="container mx-auto px-4 md:px-6 relative z-10">
                     <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-12">
 
@@ -239,7 +239,7 @@ export default function LandingPage() {
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6, delay: 0.1 }}
-                                className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.05] mb-3"
+                                className="text-3xl md:text-5xl font-bold tracking-tight leading-[1.08] mb-3"
                             >
                                 Describe It. {" "}
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D1FE17] to-[#a8d911]">
@@ -553,14 +553,14 @@ export default function LandingPage() {
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.8 }}
-                            className="flex-1 w-full h-[500px] lg:h-[700px] relative cursor-grab active:cursor-grabbing hidden lg:block"
+                            className="flex-1 w-full h-[400px] lg:h-[520px] relative cursor-grab active:cursor-grabbing hidden lg:block"
                         >
                             <div className="relative w-full h-full z-10">
                                 <SplineScene
                                     scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
                                     className="w-full h-full"
                                 />
-                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#0F051D_70%)] pointer-events-none" />
+                                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_35%,transparent_25%,#0F051D_65%)] pointer-events-none" />
                             </div>
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-white/5 blur-[100px] rounded-full pointer-events-none -z-10" />
                         </motion.div>
@@ -576,9 +576,9 @@ export default function LandingPage() {
             </section>
 
             {/* Features Section - How It Works */}
-            <section className="relative py-24 z-10 border-t border-white/5 overflow-hidden">
+            <section className="relative py-16 z-10 border-t border-white/5 overflow-hidden">
                 <div className="container mx-auto px-4 md:px-6">
-                    <div className="text-center mb-16">
+                    <div className="text-center mb-12">
                         <motion.span
                             initial={{ opacity: 0 }}
                             whileInView={{ opacity: 1 }}
@@ -632,7 +632,7 @@ export default function LandingPage() {
             </section>
 
             {/* Key Differentiator Section */}
-            <section className="relative py-24 z-10 border-t border-white/5">
+            <section className="relative py-16 z-10 border-t border-white/5">
                 <div className="container mx-auto px-4 md:px-6">
                     <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
                         {[
@@ -673,7 +673,7 @@ export default function LandingPage() {
             </section>
 
             {/* CTA Section */}
-            <section className="relative py-24 z-10 border-t border-white/5">
+            <section className="relative py-16 z-10 border-t border-white/5">
                 <div className="container mx-auto px-4 md:px-6 text-center">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}

@@ -131,8 +131,12 @@ export interface FilmStripConfig {
   }[];
   narratorVoiceId?: string;
   visualStyle?: string;
-  generationPhase?: 'idle' | 'tts' | 'images' | 'done';
+  generationPhase?: 'idle' | 'tts' | 'images' | 'exporting' | 'done';
   generationProgress?: number;
+  captionsEnabled?: boolean;
+  captionStyle?: string;
+  musicTrack?: string;
+  exportedVideoUrl?: string;
 }
 
 export type AnyNodeConfig = ScriptConfig | VoiceConfig | ImageGenConfig | VideoGenConfig | CaptionConfig | ExportConfig | LLMConfig | ArrayConfig | RouterConfig | TextIteratorConfig | SystemPromptConfig | VideoBriefConfig | FilmStripConfig
