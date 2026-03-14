@@ -4,60 +4,105 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, X, ChevronRight } from 'lucide-react'
 import {
-  CATEGORY_META,
+  NODE_DEFINITIONS,
   searchNodes,
   getNodesByCategory,
   type NodeDefinition,
+  type NodeCategory,
 } from '@/lib/constants/node-definitions'
 import { useWorkspaceStore, DEFAULT_CONFIGS, type NodeData, type AnyNodeConfig } from '@/lib/stores/workspace-store'
 import type { Node } from 'reactflow'
 
-// ─── Status badge config ──────────────────────────────────────────────────────
-const STATUS: Record<string, { label: string; cls: string }> = {
-  beta: { label: 'BETA', cls: 'bg-blue-500/20 text-blue-300 border border-blue-500/30' },
-  soon: { label: 'SOON', cls: 'bg-white/5 text-zinc-500 border border-white/8' },
+// ─── Popular nodes (her zaman üstte) ─────────────────────────────────────────
+const POPULAR_IDS = [
+  'videoBriefNode', 'filmStripNode', 'scriptNode', 'llmNode',
+  'imageGenFluxSchnellNode', 'videoGenKling3StdT2VNode', 'voiceNode', 'removeBackgroundNode',
+]
+
+// ─── Birleştirilmiş süper kategoriler ────────────────────────────────────────
+const SUPER_CATS = [
+  {
+    id: 'popular',
+    label: 'Popular',
+    icon: '⭐',
+    cats: [] as NodeCategory[], // özel: POPULAR_IDS'den gelir
+  },
+  {
+    id: 'production',
+    label: 'Production',
+    icon: '🎬',
+    cats: ['production'] as NodeCategory[],
+  },
+  {
+    id: 'text',
+    label: 'Text & LLM',
+    icon: '📝',
+    cats: ['text'] as NodeCategory[],
+  },
+  {
+    id: 'image',
+    label: 'Image',
+    icon: '🎨',
+    cats: ['image-t2i', 'image-vector', 'image-edit', 'image-i2i', 'image-enhance', 'toolbox-editing', 'toolbox-matte'] as NodeCategory[],
+  },
+  {
+    id: 'video',
+    label: 'Video',
+    icon: '🎥',
+    cats: ['video-gen', 'video-v2v', 'video-lipsync', 'video-enhance'] as NodeCategory[],
+  },
+  {
+    id: 'tools',
+    label: 'Tools',
+    icon: '⚡',
+    cats: ['helpers', 'iterators', 'datatypes'] as NodeCategory[],
+  },
+  {
+    id: '3d',
+    label: '3D',
+    icon: '🧊',
+    cats: ['3d'] as NodeCategory[],
+  },
+  {
+    id: 'community',
+    label: 'Community',
+    icon: '🌐',
+    cats: ['community'] as NodeCategory[],
+  },
+]
+
+// ─── Status badge ─────────────────────────────────────────────────────────────
+const STATUS: Record<string, string> = {
+  beta: 'bg-blue-500/15 text-blue-400 border border-blue-500/20',
+  soon: 'bg-white/4 text-zinc-600 border border-white/6',
 }
 
-// ─── Single node row ──────────────────────────────────────────────────────────
+// ─── Node row ─────────────────────────────────────────────────────────────────
 function NodeRow({ node, onAdd }: { node: NodeDefinition; onAdd: (n: NodeDefinition) => void }) {
-  const badge = STATUS[node.status]
   const isSoon = node.status === 'soon'
+  const badgeCls = STATUS[node.status]
 
   return (
     <button
       onClick={() => !isSoon && onAdd(node)}
-      className={`
-        w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-all duration-100
-        ${isSoon
-          ? 'opacity-40 cursor-default'
-          : 'hover:bg-[#D1FE17]/5 hover:border-[#D1FE17]/10 border border-transparent cursor-pointer group'
-        }
-      `}
+      className={`w-full flex items-center gap-2 px-2.5 py-[5px] rounded-md text-left transition-colors duration-75 group
+        ${isSoon ? 'opacity-35 cursor-default' : 'hover:bg-white/6 cursor-pointer'}`}
     >
-      {/* Icon */}
-      <span className="text-[13px] w-4 text-center shrink-0 leading-none">{node.icon}</span>
-
-      {/* Label */}
-      <span className={`flex-1 text-[11px] font-medium truncate ${isSoon ? 'text-zinc-500' : 'text-zinc-200 group-hover:text-white'}`}>
+      <span className="text-[13px] w-4 shrink-0 text-center leading-none">{node.icon}</span>
+      <span className={`flex-1 text-[11px] truncate ${isSoon ? 'text-zinc-600' : 'text-zinc-300 group-hover:text-white'}`}>
         {node.label}
       </span>
-
-      {/* Badges */}
-      <div className="flex items-center gap-1.5 shrink-0">
+      <div className="flex items-center gap-1 shrink-0">
         {node.isNew && !isSoon && (
-          <span className="text-[8px] px-1 py-px rounded bg-[#D1FE17]/15 text-[#D1FE17] border border-[#D1FE17]/25 font-bold tracking-wide">
-            NEW
-          </span>
+          <span className="text-[7px] px-1 rounded-sm bg-[#D1FE17]/15 text-[#D1FE17] border border-[#D1FE17]/20 font-bold tracking-wide leading-4">NEW</span>
         )}
-        {badge?.label && (
-          <span className={`text-[8px] px-1 py-px rounded font-bold tracking-wide ${badge.cls}`}>
-            {badge.label}
+        {badgeCls && (
+          <span className={`text-[7px] px-1 rounded-sm font-bold tracking-wide leading-4 ${badgeCls}`}>
+            {node.status === 'beta' ? 'BETA' : 'SOON'}
           </span>
         )}
         {node.creditCost && !isSoon && (
-          <span className="text-[10px] text-[#D1FE17]/60 font-mono tabular-nums">
-            {typeof node.creditCost === 'number' ? `${node.creditCost}cr` : node.creditCost}
-          </span>
+          <span className="text-[10px] text-[#D1FE17]/50 font-mono">{typeof node.creditCost === 'number' ? `${node.creditCost}cr` : node.creditCost}</span>
         )}
       </div>
     </button>
@@ -70,14 +115,12 @@ export function CanvasContextMenu() {
   const menuRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState('')
-  const [activeCat, setActiveCat] = useState<string>(CATEGORY_META[0]?.id ?? '')
+  const [activeSuper, setActiveSuper] = useState('popular')
 
   // Close on outside click
   useEffect(() => {
     const handle = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as globalThis.Node)) {
-        setContextMenu(null)
-      }
+      if (menuRef.current && !menuRef.current.contains(e.target as globalThis.Node)) setContextMenu(null)
     }
     if (contextMenu) {
       setTimeout(() => document.addEventListener('mousedown', handle), 0)
@@ -85,7 +128,6 @@ export function CanvasContextMenu() {
     }
   }, [contextMenu, setContextMenu])
 
-  // Close on Escape
   useEffect(() => {
     const handle = (e: KeyboardEvent) => { if (e.key === 'Escape') setContextMenu(null) }
     if (contextMenu) {
@@ -94,18 +136,17 @@ export function CanvasContextMenu() {
     }
   }, [contextMenu, setContextMenu])
 
-  // Reset & focus on open
   useEffect(() => {
     if (contextMenu) {
       setQuery('')
-      setActiveCat(CATEGORY_META[0]?.id ?? '')
-      setTimeout(() => searchRef.current?.focus(), 60)
+      setActiveSuper('popular')
+      setTimeout(() => searchRef.current?.focus(), 50)
     }
   }, [contextMenu])
 
   const handleAdd = useCallback((def: NodeDefinition) => {
     if (!contextMenu) return
-    const newNode: Node<NodeData> = {
+    addNode({
       id: `${def.id}-${Date.now()}`,
       type: def.id,
       position: { x: contextMenu.canvasX, y: contextMenu.canvasY },
@@ -115,31 +156,33 @@ export function CanvasContextMenu() {
         status: 'idle',
         config: { ...(DEFAULT_CONFIGS as any)[def.id.replace('Node', '')] } as AnyNodeConfig,
       },
-    }
-    addNode(newNode)
+    } as Node<NodeData>)
     setContextMenu(null)
   }, [contextMenu, addNode, setContextMenu])
 
-  // Categories that have nodes
-  const categories = CATEGORY_META.map(cat => ({
-    ...cat,
-    nodes: getNodesByCategory(cat.id),
-  })).filter(c => c.nodes.length > 0)
+  // Nodes for active super-cat
+  const getNodesForSuper = (superId: string): NodeDefinition[] => {
+    if (superId === 'popular') {
+      return POPULAR_IDS
+        .map(id => NODE_DEFINITIONS.find(n => n.id === id))
+        .filter(Boolean) as NodeDefinition[]
+    }
+    const sc = SUPER_CATS.find(s => s.id === superId)
+    if (!sc) return []
+    return sc.cats.flatMap(cat => getNodesByCategory(cat))
+  }
 
-  // Active category nodes
-  const activeNodes = categories.find(c => c.id === activeCat)?.nodes ?? []
-
-  // Search results
+  const activeNodes = getNodesForSuper(activeSuper)
   const searchResults = query.trim() ? searchNodes(query) : []
   const isSearching = query.trim().length > 0
 
-  // Smart position to stay in viewport
-  const style: React.CSSProperties = {}
+  // Smart position
+  const pos: React.CSSProperties = {}
   if (contextMenu) {
-    const W = 380, H = 340
+    const W = 340, H = 300
     const vw = window.innerWidth, vh = window.innerHeight
-    style.left = contextMenu.x + W > vw ? Math.max(8, contextMenu.x - W) : contextMenu.x
-    style.top  = contextMenu.y + H > vh ? Math.max(8, contextMenu.y - H) : contextMenu.y
+    pos.left = contextMenu.x + W > vw ? Math.max(4, contextMenu.x - W) : contextMenu.x
+    pos.top  = contextMenu.y + H > vh ? Math.max(4, contextMenu.y - H) : contextMenu.y
   }
 
   return (
@@ -147,125 +190,85 @@ export function CanvasContextMenu() {
       {contextMenu && (
         <motion.div
           ref={menuRef}
-          initial={{ opacity: 0, scale: 0.95, y: -6 }}
+          initial={{ opacity: 0, scale: 0.96, y: -4 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: -6 }}
-          transition={{ duration: 0.13, ease: [0.16, 1, 0.3, 1] }}
-          className="fixed z-[100] rounded-xl overflow-hidden flex flex-col"
+          exit={{ opacity: 0, scale: 0.96, y: -4 }}
+          transition={{ duration: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="fixed z-[100] flex flex-col overflow-hidden"
           style={{
-            width: 380,
-            maxHeight: 340,
-            background: 'rgba(13, 5, 26, 0.97)',
-            border: '1px solid rgba(139, 92, 246, 0.18)',
-            boxShadow: '0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.05)',
-            backdropFilter: 'blur(24px)',
-            ...style,
+            width: 340,
+            maxHeight: 300,
+            background: 'rgba(10, 4, 20, 0.96)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 10,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(20px)',
+            ...pos,
           }}
         >
-          {/* Search bar */}
-          <div className="flex items-center gap-2 px-3 py-2 border-b border-white/6 shrink-0">
-            <Search className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+          {/* Search */}
+          <div className="flex items-center gap-2 px-2.5 py-1.5 border-b border-white/6 shrink-0">
+            <Search className="w-3 h-3 text-zinc-600 shrink-0" />
             <input
               ref={searchRef}
-              type="text"
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Node ara..."
-              className="flex-1 bg-transparent text-[12px] text-zinc-200 placeholder-zinc-600 outline-none"
+              placeholder="Search nodes..."
+              className="flex-1 bg-transparent text-[11px] text-zinc-300 placeholder-zinc-600 outline-none"
             />
-            {query ? (
-              <button onClick={() => setQuery('')} className="text-zinc-600 hover:text-zinc-400 transition-colors">
-                <X className="w-3.5 h-3.5" />
+            {query && (
+              <button onClick={() => setQuery('')}>
+                <X className="w-3 h-3 text-zinc-700 hover:text-zinc-500" />
               </button>
-            ) : (
-              <kbd className="text-[9px] text-zinc-600 bg-white/5 border border-white/8 rounded px-1.5 py-0.5 font-mono">ESC</kbd>
             )}
           </div>
 
           {/* Body */}
           <div className="flex flex-1 overflow-hidden">
-
             {isSearching ? (
-              /* ── Search results (full width) ── */
-              <div className="flex-1 overflow-y-auto p-1.5 space-y-0.5" style={{ scrollbarWidth: 'none' }}>
-                {searchResults.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-10 text-zinc-600">
-                    <Search className="w-6 h-6 mb-2 opacity-40" />
-                    <p className="text-xs">"{query}" için sonuç bulunamadı</p>
-                  </div>
-                ) : (
-                  searchResults.map(node => (
-                    <NodeRow key={node.id} node={node} onAdd={handleAdd} />
-                  ))
-                )}
+              /* Search results */
+              <div className="flex-1 overflow-y-auto py-1 px-1" style={{ scrollbarWidth: 'none' }}>
+                {searchResults.length === 0
+                  ? <p className="text-[10px] text-zinc-600 text-center py-6">No results for "{query}"</p>
+                  : searchResults.map(n => <NodeRow key={n.id} node={n} onAdd={handleAdd} />)
+                }
               </div>
             ) : (
-              /* ── Two-panel: categories | nodes ── */
               <>
-                {/* Left — category list */}
-                <div
-                  className="w-36 shrink-0 border-r border-white/6 overflow-y-auto py-1"
-                  style={{ scrollbarWidth: 'none' }}
-                >
-                  {categories.map(cat => {
-                    const isActive = cat.id === activeCat
-                    const activeCount = cat.nodes.filter(n => n.status === 'active').length
+                {/* Left — super categories */}
+                <div className="shrink-0 border-r border-white/6 overflow-y-auto py-1" style={{ width: 110, scrollbarWidth: 'none' }}>
+                  {SUPER_CATS.map(sc => {
+                    const isActive = sc.id === activeSuper
+                    const nodes = getNodesForSuper(sc.id)
+                    const activeCount = nodes.filter(n => n.status === 'active').length
                     return (
                       <button
-                        key={cat.id}
-                        onMouseEnter={() => setActiveCat(cat.id)}
-                        onClick={() => setActiveCat(cat.id)}
-                        className={`
-                          w-full flex items-center gap-2 px-2.5 py-1.5 text-left transition-all duration-100 relative
-                          ${isActive
-                            ? 'bg-[#a78bfa]/10 text-white'
-                            : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/4'
-                          }
-                        `}
+                        key={sc.id}
+                        onMouseEnter={() => setActiveSuper(sc.id)}
+                        onClick={() => setActiveSuper(sc.id)}
+                        className={`w-full flex items-center gap-1.5 px-2 py-[5px] text-left relative transition-colors duration-75
+                          ${isActive ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                       >
-                        {/* Active indicator */}
-                        {isActive && (
-                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-5 bg-[#a78bfa] rounded-full" />
+                        {isActive && <span className="absolute left-0 inset-y-1 w-[2px] bg-[#a78bfa] rounded-full" />}
+                        <span className="text-[12px] leading-none">{sc.icon}</span>
+                        <span className="flex-1 text-[10px] font-medium truncate">{sc.label}</span>
+                        {activeCount > 0 && (
+                          <span className={`text-[9px] font-mono ${isActive ? 'text-[#a78bfa]/60' : 'text-zinc-700'}`}>{activeCount}</span>
                         )}
-                        <span className="text-[13px] leading-none shrink-0">{cat.icon}</span>
-                        <span className="flex-1 text-[10px] font-medium leading-tight truncate">{cat.label}</span>
-                        <div className="flex items-center gap-1 shrink-0">
-                          <span className={`text-[9px] font-mono tabular-nums ${isActive ? 'text-[#a78bfa]/70' : 'text-zinc-700'}`}>
-                            {activeCount}
-                          </span>
-                          <ChevronRight className={`w-2.5 h-2.5 ${isActive ? 'text-[#a78bfa]/50' : 'text-zinc-700'}`} />
-                        </div>
                       </button>
                     )
                   })}
                 </div>
 
-                {/* Right — node list */}
-                <div className="flex-1 overflow-y-auto py-1 px-1.5 space-y-0.5" style={{ scrollbarWidth: 'none' }}>
-                  {/* Category header */}
-                  <div className="flex items-center gap-1.5 px-2 pb-1 mb-0.5 border-b border-white/5">
-                    <span className="text-[11px] leading-none">
-                      {categories.find(c => c.id === activeCat)?.icon}
-                    </span>
-                    <span className="text-[9px] font-semibold text-zinc-600 uppercase tracking-wider">
-                      {categories.find(c => c.id === activeCat)?.label}
-                    </span>
-                  </div>
-
-                  {activeNodes.map(node => (
-                    <NodeRow key={node.id} node={node} onAdd={handleAdd} />
-                  ))}
+                {/* Right — nodes */}
+                <div className="flex-1 overflow-y-auto py-1 px-1" style={{ scrollbarWidth: 'none' }}>
+                  {activeNodes.length === 0
+                    ? <p className="text-[10px] text-zinc-600 text-center py-6">No nodes</p>
+                    : activeNodes.map(n => <NodeRow key={n.id} node={n} onAdd={handleAdd} />)
+                  }
                 </div>
               </>
             )}
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between px-3 py-1.5 border-t border-white/5 shrink-0">
-            <span className="text-[9px] text-zinc-700">Sağ-tık ile ekle · ESC kapat</span>
-            <span className="text-[9px] text-zinc-700 font-mono">
-              {categories.reduce((a, c) => a + c.nodes.length, 0)} node
-            </span>
           </div>
         </motion.div>
       )}
