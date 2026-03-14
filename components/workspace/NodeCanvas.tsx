@@ -23,6 +23,7 @@ import 'reactflow/dist/style.css'
 import { nodeTypes } from './nodes/CustomNodes'
 import { edgeTypes } from './edges/LabeledEdge'
 import { useWorkspaceStore, NODE_COLORS, CONNECTION_RULES, DEFAULT_CONFIGS, type NodeData } from '@/lib/stores/workspace-store'
+import { getNodeDef } from '@/lib/constants/node-definitions'
 import type { Node } from 'reactflow'
 
 const zoomSelector = (s: any) => s.transform[2]
@@ -121,6 +122,45 @@ export function NodeCanvas() {
 
   const onNodeDragStop = useCallback(() => { _pushHistory() }, [_pushHistory])
 
+  // ── Drag-from-Library drop handler ───────────────────────────────────────
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'copy'
+  }, [])
+
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault()
+      const nodeDefId = event.dataTransfer.getData('application/creavidy-node')
+      if (!nodeDefId || !reactFlowInstance.current || !reactFlowWrapper.current) return
+
+      const def = getNodeDef(nodeDefId)
+      if (!def || def.status === 'soon') return
+
+      const bounds = reactFlowWrapper.current.getBoundingClientRect()
+      const position = reactFlowInstance.current.project({
+        x: event.clientX - bounds.left,
+        y: event.clientY - bounds.top,
+      })
+
+      const id = `${nodeDefId}-${Date.now()}`
+      const newNode: Node<NodeData> = {
+        id,
+        type: nodeDefId,
+        position,
+        data: {
+          label: def.label,
+          type: nodeDefId.replace('Node', ''),
+          status: 'idle',
+          config: (DEFAULT_CONFIGS as any)[nodeDefId.replace('Node', '')] || {},
+        },
+      }
+      _pushHistory()
+      setNodes([...nodes, newNode])
+    },
+    [nodes, setNodes, _pushHistory]
+  )
+
   const onConnect: OnConnect = useCallback(
     (connection: Connection) => {
       if (!isValidConnection(connection)) return
@@ -185,7 +225,7 @@ export function NodeCanvas() {
   )
 
   return (
-    <div ref={reactFlowWrapper} className="w-full h-full">
+    <div ref={reactFlowWrapper} className="w-full h-full" onDragOver={onDragOver} onDrop={onDrop}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
