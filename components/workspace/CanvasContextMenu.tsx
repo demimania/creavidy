@@ -64,6 +64,12 @@ const SUPER_CATS = [
     cats: ['3d'] as NodeCategory[],
   },
   {
+    id: 'ai-avatar',
+    label: 'AI Avatar',
+    icon: '🧑‍💻',
+    cats: ['ai-avatar'] as NodeCategory[],
+  },
+  {
     id: 'community',
     label: 'Community',
     icon: '🌐',

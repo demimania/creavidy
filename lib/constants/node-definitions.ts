@@ -47,6 +47,7 @@ export type NodeCategory =
   | 'video-enhance'
   | '3d'
   | 'community'
+  | 'ai-avatar'
 
 export interface CategoryMeta {
   id: NodeCategory
@@ -74,6 +75,7 @@ export const CATEGORY_META: CategoryMeta[] = [
   { id: 'video-enhance',   label: 'Video — Enhance',      icon: '🔭', color: '#06b6d4' },
   { id: '3d',              label: '3D Models',            icon: '🧊', color: '#06b6d4' },
   { id: 'community',       label: 'Community / Custom',   icon: '🌐', color: '#64748b' },
+  { id: 'ai-avatar',      label: 'AI Avatar',            icon: '🧑‍💻', color: '#ec4899' },
 ]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -1782,6 +1784,43 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     category: 'community', subcategory: 'enhance',
     inputs: [vidR('Video')], outputs: [vid('Video')],
     creditCost: 5, status: 'active',
+  },
+
+  // ═══ AI AVATAR (5) ═══════════════════════════════════════════════════════
+  {
+    id: 'heygenTalkingPhotoNode', label: 'HeyGen Talking Photo', icon: '🧑‍💻',
+    description: 'Fotoğraftan konuşan avatar videosu üret — HeyGen Talking Photo',
+    category: 'ai-avatar', subcategory: 'heygen',
+    inputs: [imgR('Portrait'), txtR('Script')], outputs: [vid('Avatar Video')],
+    provider: 'HeyGen', creditCost: 20, status: 'active', isNew: true,
+  },
+  {
+    id: 'heygenVideoAvatarNode', label: 'HeyGen Video Avatar', icon: '🎭',
+    description: 'Hazır avatar ile script okutarak profesyonel video üret — HeyGen',
+    category: 'ai-avatar', subcategory: 'heygen',
+    inputs: [txtR('Script')], outputs: [vid('Avatar Video')],
+    provider: 'HeyGen', creditCost: 30, status: 'active', isNew: true,
+  },
+  {
+    id: 'hedraCharacterNode', label: 'Hedra Character', icon: '🎬',
+    description: 'Görsel + ses ile senkron konuşan karakter videosu — Hedra Character-3',
+    category: 'ai-avatar', subcategory: 'hedra',
+    inputs: [imgR('Portrait'), aud('Audio')], outputs: [vid('Character Video')],
+    provider: 'Hedra', creditCost: 25, status: 'active', isNew: true,
+  },
+  {
+    id: 'hedraLipSyncNode', label: 'Hedra Lip Sync', icon: '💬',
+    description: 'Fotoğraf + metin girişinden dudak senkronlu video — Hedra',
+    category: 'ai-avatar', subcategory: 'hedra',
+    inputs: [imgR('Portrait'), txtR('Script')], outputs: [vid('Lip Sync Video')],
+    provider: 'Hedra', creditCost: 20, status: 'active', isNew: true,
+  },
+  {
+    id: 'runwayActTwoAvatarNode', label: 'Runway Act-Two', icon: '🎥',
+    description: 'Portreden ses senkronlu avatar animasyonu — Runway Act-Two',
+    category: 'ai-avatar', subcategory: 'runway',
+    inputs: [imgR('Portrait'), aud('Audio')], outputs: [vid('Avatar Video')],
+    provider: 'Runway', creditCost: 35, status: 'beta', isNew: true,
   },
 ]
 

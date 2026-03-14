@@ -20,6 +20,7 @@ import { ThreeDNodeContent, AudioGenNodeContent, VoiceCloneNodeContent } from '.
 import { ImageI2INodeContent } from './ImageI2INodes'
 import { ToolboxNodeContent } from './ToolboxNodes'
 import { CommunityNodeContent } from './CommunityNodes'
+import { AvatarNodeContent } from './AvatarNodes'
 import { NodeErrorBoundary } from './NodeErrorBoundary'
 
 // Highlight ring class for card badge navigation
@@ -1158,4 +1159,10 @@ export const nodeTypes = safeNodeTypes({
   increaseFrameRateNode: CommunityNodeContent,
   videoSmootherCommunityNode: CommunityNodeContent,
   klingLipSyncCommunityNode: CommunityNodeContent,
+  // ── AI Avatar nodes ────────────────────────────────────────────────────────
+  heygenTalkingPhotoNode:  AvatarNodeContent,
+  heygenVideoAvatarNode:   AvatarNodeContent,
+  hedraCharacterNode:      AvatarNodeContent,
+  hedraLipSyncNode:        AvatarNodeContent,
+  runwayActTwoAvatarNode:  AvatarNodeContent,
 })
