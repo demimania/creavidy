@@ -11,11 +11,9 @@ import { NodeCanvas } from '@/components/workspace/NodeCanvas'
 import { NodeDetailPanel } from '@/components/workspace/NodeDetailPanel'
 import { CanvasContextMenu } from '@/components/workspace/CanvasContextMenu'
 import { WorkspaceChatPanel } from '@/components/workspace/WorkspaceChatPanel'
-import { NodeLibrarySidebar } from '@/components/workspace/NodeLibrarySidebar'
 import { useWorkspaceStore, DEFAULT_CONFIGS } from '@/lib/stores/workspace-store'
 import { executePipeline } from '@/lib/ai/execution-engine'
 import { getNodeDef } from '@/lib/constants/node-definitions'
-import { LayoutGrid } from 'lucide-react'
 
 function WorkspaceContent() {
   const searchParams = useSearchParams()
@@ -47,8 +45,6 @@ function WorkspaceContent() {
   // Floating chat window
   const [chatOpen, setChatOpen] = useState(false)
   const [chatMinimized, setChatMinimized] = useState(false)
-  // Node Library Sidebar
-  const [libraryOpen, setLibraryOpen] = useState(true)
 
   // Gerçek kredi bakiyesi
   const [credits, setCredits] = useState<{ remaining: number; total: number } | null>(null)
@@ -270,14 +266,6 @@ function WorkspaceContent() {
         </div>
 
         <div className="flex items-center gap-1.5">
-          {/* Library toggle */}
-          <button
-            onClick={() => setLibraryOpen(o => !o)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[11px] font-medium transition-all ${libraryOpen ? 'bg-[#a78bfa]/20 border-[#a78bfa]/40 text-[#a78bfa]' : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'}`}
-            title="Node Library"
-          >
-            <LayoutGrid className="w-3 h-3" /> Library
-          </button>
           <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#D1FE17]/15 border border-[#D1FE17]/30 text-[11px] text-[#D1FE17] font-medium hover:bg-[#D1FE17]/25 transition-all" title="Export">
             <Download className="w-3 h-3" /> Export
           </button>
@@ -286,15 +274,12 @@ function WorkspaceContent() {
 
       {/* Main: Canvas + Properties Panel */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Canvas wrapper (relative so sidebar overlays it) */}
+        {/* Canvas wrapper */}
         <div className="flex-1 relative">
-          {/* Node Library Sidebar — overlays canvas */}
-          <NodeLibrarySidebar open={libraryOpen} onClose={() => setLibraryOpen(false)} />
-
           <NodeCanvas />
           <CanvasContextMenu />
-          <div className={`absolute bottom-4 z-20 px-3 py-1.5 rounded-lg bg-black/40 backdrop-blur-sm border border-white/5 transition-all ${libraryOpen ? 'left-[252px]' : 'left-4'}`}>
-            <p className="text-[10px] text-zinc-500">Sürükle-bırak · Sağ-tık ile node ekle · Handle'ları bağla</p>
+          <div className="absolute bottom-4 left-4 z-20 px-3 py-1.5 rounded-lg bg-black/40 backdrop-blur-sm border border-white/5">
+            <p className="text-[10px] text-zinc-500">Sağ-tık ile node ekle · Handle'ları bağla</p>
           </div>
 
           {/* Floating Chat Toggle Button — bottom-left above hint */}
