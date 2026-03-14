@@ -196,6 +196,11 @@ interface WorkspaceState {
   // Brief store (nodeId → BriefEntry)
   briefs: Record<string, BriefEntry>
 
+  // Variable store
+  variables: Record<string, string>
+  setVariable: (name: string, value: string) => void
+  getVariable: (name: string) => string | undefined
+
   setProjectId: (id: string) => void
   setProjectTitle: (title: string) => void
   setNodes: (nodes: Node<NodeData>[]) => void
@@ -325,6 +330,11 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
 
   // Brief store
   briefs: {},
+
+  // Variable store
+  variables: {},
+  setVariable: (name, value) => set((state) => ({ variables: { ...state.variables, [name]: value } })),
+  getVariable: (name) => get().variables[name],
 
   _history: [],
   _historyFuture: [],

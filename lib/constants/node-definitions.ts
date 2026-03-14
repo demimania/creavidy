@@ -160,6 +160,25 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     category: 'text', subcategory: 'utility',
     inputs: [], outputs: [txt('System')], status: 'active',
   },
+  // Variable system nodes
+  {
+    id: 'setVariableNode', label: 'Set Variable', icon: '📌',
+    description: '{variable} syntax ile değişken ata — tüm node\'larda kullanılabilir',
+    category: 'helpers', subcategory: 'variable',
+    inputs: [any('Input')], outputs: [txt('Value')], status: 'active', isNew: true,
+  },
+  {
+    id: 'getVariableNode', label: 'Get Variable', icon: '🔍',
+    description: 'Daha önce set edilmiş {variable} değerini oku ve pipeline\'a aktar',
+    category: 'helpers', subcategory: 'variable',
+    inputs: [], outputs: [txt('Value')], status: 'active', isNew: true,
+  },
+  {
+    id: 'textFormatterNode', label: 'Text Formatter', icon: '✏️',
+    description: 'Şablon metin birleştirme — {a} + {b} → output; {variable} highlight',
+    category: 'helpers', subcategory: 'variable',
+    inputs: [{ name: 'Text', type: 'text', multiple: true }], outputs: [txt('Text')], status: 'active', isNew: true,
+  },
 
   // ═══ DATATYPES (6) ════════════════════════════════════════════════════════
   {

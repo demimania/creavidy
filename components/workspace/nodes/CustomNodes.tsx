@@ -11,6 +11,8 @@ import { executeSingleNode } from '@/lib/ai/execution-engine'
 import { toast } from 'sonner'
 import { VideoBriefNodeContent, FilmStripNodeContent } from './CapCutNodes'
 import { ImageEditNodeContent, SoonNodeContent } from './ImageEditNodes'
+import { SetVariableNodeContent, GetVariableNodeContent, TextFormatterNodeContent } from './VariableNodes'
+import { PromptVariableEditor } from './PromptVariableEditor'
 
 // Highlight ring class for card badge navigation
 function useNodeHighlight(id: string) {
@@ -115,14 +117,14 @@ const ScriptNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) => 
         <NodeMenuWrapper nodeId={id} />
       </div>
 
-      {/* Content — editable textarea */}
+      {/* Content — editable textarea with variable highlight */}
       <div className="bg-[#0F051D]/90 backdrop-blur-xl">
         <div className="mx-3 my-2 bg-[#1a1025] border border-white/8 rounded-lg overflow-hidden focus-within:border-[#a78bfa] transition-colors">
-          <textarea
-            className="w-full h-[120px] p-2.5 bg-transparent text-[11px] text-zinc-300 resize-none outline-none custom-scrollbar"
-            placeholder="Type your script or prompt here..."
+          <PromptVariableEditor
             value={config.prompt || ''}
-            onChange={(e) => updateNodeConfig(id, { prompt: e.target.value })}
+            onChange={(val) => updateNodeConfig(id, { prompt: val })}
+            placeholder="Type your script or prompt here... Use {variable} for dynamic values"
+            rows={5}
           />
         </div>
 
@@ -882,6 +884,10 @@ export const nodeTypes = {
   upscaleNode: (props: any) => <ImageEditNodeContent {...props} data={{ ...props.data, config: { ...(props.data.config || {}), editType: 'upscale' } }} />,
   fluxFillProNode: (props: any) => <ImageEditNodeContent {...props} data={{ ...props.data, config: { ...(props.data.config || {}), editType: 'inpaint' } }} />,
   imageEditNode: ImageEditNodeContent,
+  // Variable nodes (active)
+  setVariableNode: SetVariableNodeContent,
+  getVariableNode: GetVariableNodeContent,
+  textFormatterNode: TextFormatterNodeContent,
   // Generic "soon" fallback for all other library nodes
   promptNode: SoonNodeContent,
   promptConcatNode: SoonNodeContent,
