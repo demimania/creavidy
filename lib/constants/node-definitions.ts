@@ -1411,8 +1411,47 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     inputs: [txtR('Text')], outputs: [aud('Audio')],
     creditCost: 5, status: 'active',
   },
+  // Audio Generation — Faz 8
+  {
+    id: 'stableAudioNode', label: 'Stable Audio', description: 'Text to music/SFX', icon: '🎵',
+    category: 'helpers', subcategory: 'audio',
+    inputs: [{ name: 'prompt', type: 'text' }], outputs: [{ name: 'audio', type: 'audio' }],
+    provider: 'Stability AI', creditCost: 8, status: 'active', isNew: true,
+  },
+  {
+    id: 'sunoNode', label: 'Suno Music', description: 'AI music generation', icon: '🎼',
+    category: 'helpers', subcategory: 'audio',
+    inputs: [{ name: 'prompt', type: 'text' }], outputs: [{ name: 'audio', type: 'audio' }],
+    provider: 'Suno', creditCost: 12, status: 'active', isNew: true,
+  },
+  // Voice Clone — Faz 8
+  {
+    id: 'fishAudioCloneNode', label: 'Fish Audio Clone', description: 'Voice cloning with reference audio', icon: '🐟',
+    category: 'helpers', subcategory: 'voice',
+    inputs: [{ name: 'text', type: 'text' }, { name: 'reference_audio', type: 'audio' }], outputs: [{ name: 'audio', type: 'audio' }],
+    provider: 'Fish Audio', creditCost: 5, status: 'active', isNew: true,
+  },
+  {
+    id: 'elevenLabsCloneNode', label: 'ElevenLabs Clone', description: 'ElevenLabs voice synthesis', icon: '🎙️',
+    category: 'helpers', subcategory: 'voice',
+    inputs: [{ name: 'text', type: 'text' }], outputs: [{ name: 'audio', type: 'audio' }],
+    provider: 'ElevenLabs', creditCost: 6, status: 'active', isNew: true,
+  },
 
-  // ═══ 3D MODELS (9) ════════════════════════════════════════════════════════
+  // ═══ 3D MODELS (9+2) ══════════════════════════════════════════════════════
+  // Active 3D nodes — Faz 8
+  {
+    id: 'triposrNode', label: 'TripoSR 3D', description: 'Image/text to 3D model', icon: '📦',
+    category: '3d', subcategory: 'generation',
+    inputs: [{ name: 'image', type: 'image' }, { name: 'prompt', type: 'text' }], outputs: [{ name: '3d_model', type: '3d' }],
+    provider: 'TripoSR', creditCost: 15, status: 'active', isNew: true,
+  },
+  {
+    id: 'hyper3dNode', label: 'Hyper3D Rodin', description: 'High quality 3D generation', icon: '🧊',
+    category: '3d', subcategory: 'generation',
+    inputs: [{ name: 'image', type: 'image' }, { name: 'prompt', type: 'text' }], outputs: [{ name: '3d_model', type: '3d' }],
+    provider: 'Hyper3D', creditCost: 25, status: 'active', isNew: true,
+  },
   {
     id: 'meshyV6Node', label: 'Meshy V6', icon: '🧊',
     description: 'Meshy V6 — metin veya görselden 3D model üretim',

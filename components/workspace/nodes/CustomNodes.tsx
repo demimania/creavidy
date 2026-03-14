@@ -16,6 +16,7 @@ import { LipSyncNodeContent, VideoToVideoNodeContent, VideoUpscaleNodeContent, V
 import { SetVariableNodeContent, GetVariableNodeContent, TextFormatterNodeContent } from './VariableNodes'
 import { PromptVariableEditor } from './PromptVariableEditor'
 import { TextIteratorNodeContent as IteratorTextNodeContent, ImageIteratorNodeContent, TaskManagerNodeContent } from './IteratorNodes'
+import { ThreeDNodeContent, AudioGenNodeContent, VoiceCloneNodeContent } from './SpecialNodes'
 
 // Highlight ring class for card badge navigation
 function useNodeHighlight(id: string) {
@@ -1109,7 +1110,16 @@ export const nodeTypes = {
   zDepthExtractorNode: SoonNodeContent,
   animatedDiffNode: SoonNodeContent,
   tooncrafterNode: SoonNodeContent,
-  tripoSRNode: SoonNodeContent,
+  tripoSRNode: ThreeDNodeContent,
+  // 3D active nodes — Faz 8
+  triposrNode: ThreeDNodeContent,
+  hyper3dNode: ThreeDNodeContent,
+  // Audio generation — Faz 8
+  stableAudioNode: AudioGenNodeContent,
+  sunoNode: AudioGenNodeContent,
+  // Voice clone — Faz 8
+  fishAudioCloneNode: VoiceCloneNodeContent,
+  elevenLabsCloneNode: VoiceCloneNodeContent,
   fluxReduxControlNetNode: SoonNodeContent,
   sdxlConsistentCharNode: SoonNodeContent,
   sdxlMultiControlNetLoraNode: SoonNodeContent,

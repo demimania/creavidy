@@ -26,6 +26,9 @@ export const NODE_COLORS: Record<string, string> = {
   filmStrip: '#f59e0b',
   imageEdit: '#f43f5e',
   videoEdit: '#22d3ee',
+  '3d': '#34d399',
+  audioGen: '#f472b6',
+  voiceClone: '#fb923c',
 }
 
 // ── Connection rules: which source types can connect to which targets ────────
@@ -129,6 +132,20 @@ export interface VideoEditConfig {
   scale?: number
 }
 
+// ── Special Nodes (Faz 8: 3D, Audio, Voice Clone) ─
+export interface SpecialNodeConfig {
+  model?: string
+  prompt?: string
+  imageUrl?: string
+  type?: string
+  style?: string
+  duration?: number
+  provider?: string
+  text?: string
+  referenceAudioUrl?: string
+  voiceId?: string
+}
+
 // ── CapCut-style nodes ────────────────────────────
 export interface VideoBriefConfig {
   prompt: string;
@@ -171,7 +188,7 @@ export interface FilmStripConfig {
   exportedVideoUrl?: string;
 }
 
-export type AnyNodeConfig = ScriptConfig | VoiceConfig | ImageGenConfig | VideoGenConfig | CaptionConfig | ExportConfig | LLMConfig | ArrayConfig | RouterConfig | TextIteratorConfig | SystemPromptConfig | VideoBriefConfig | FilmStripConfig | ImageEditConfig | VideoEditConfig | IteratorConfig
+export type AnyNodeConfig = ScriptConfig | VoiceConfig | ImageGenConfig | VideoGenConfig | CaptionConfig | ExportConfig | LLMConfig | ArrayConfig | RouterConfig | TextIteratorConfig | SystemPromptConfig | VideoBriefConfig | FilmStripConfig | ImageEditConfig | VideoEditConfig | IteratorConfig | SpecialNodeConfig
 
 export interface NodeData {
   label: string

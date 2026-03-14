@@ -76,6 +76,15 @@ export const CREDIT_COSTS: Record<string, number> = {
   'fal-ai/luma-dream-machine/ray-2/text-to-video': 20,
   'fal-ai/minimax/video-01-live': 25,
   'fal-ai/wan-pro/v2.2/t2v': 20,
+  // 3D generation (Faz 8)
+  'fal-ai/triposr': 15,
+  'fal-ai/hyper3d/rodin': 25,
+  // Audio generation (Faz 8)
+  'fal-ai/stable-audio': 8,
+  'fal-ai/suno-ai/chirp-v4': 12,
+  // Voice clone (Faz 8)
+  'fal-ai/fish-speech-1.5': 5,
+  'fal-ai/elevenlabs/tts': 6,
 }
 
 export function getCreditCost(model: string): number {
@@ -508,6 +517,110 @@ export async function enhanceVideo(params: { videoUrl: string; enhanceType?: str
     pollInterval: 3000,
   }) as any
   return { videoUrl: result.data?.video?.url || result.data?.output?.video_url || '', requestId: String(result.requestId || '') }
+}
+
+// ── 3D Generation (Faz 8) ────────────────────────────────────────────────────
+
+// Tripo3D — text/image → 3D mesh
+export async function generate3DTripo(params: { prompt?: string; imageUrl?: string }): Promise<{ modelUrl: string; requestId: string }> {
+  const input: Record<string, unknown> = {}
+  if (params.imageUrl) {
+    input.image_url = params.imageUrl
+  } else {
+    input.prompt = params.prompt
+  }
+  const result = await fal.subscribe('fal-ai/triposr', {
+    input: input as any,
+    pollInterval: 3000,
+  }) as any
+  return {
+    modelUrl: result.model_mesh?.url || result.output?.model_url || '',
+    requestId: String(result.requestId || ''),
+  }
+}
+
+// Hyper3D — higher quality 3D
+export async function generate3DHyper(params: { prompt?: string; imageUrl?: string }): Promise<{ modelUrl: string; requestId: string }> {
+  const input: Record<string, unknown> = {}
+  if (params.imageUrl) {
+    input.image_url = params.imageUrl
+  } else {
+    input.prompt = params.prompt
+  }
+  const result = await fal.subscribe('fal-ai/hyper3d/rodin', {
+    input,
+    pollInterval: 4000,
+  }) as any
+  return {
+    modelUrl: result.model?.url || result.output?.model_url || '',
+    requestId: String(result.requestId || ''),
+  }
+}
+
+// ── Audio Generation (Faz 8) ─────────────────────────────────────────────────
+
+// Stable Audio — text → music/sfx
+export async function generateAudio(params: { prompt: string; duration?: number; steps?: number }): Promise<{ audioUrl: string; requestId: string }> {
+  const result = await fal.subscribe('fal-ai/stable-audio', {
+    input: {
+      prompt: params.prompt,
+      seconds_total: params.duration ?? 30,
+      steps: params.steps ?? 100,
+    },
+    pollInterval: 3000,
+  }) as any
+  return {
+    audioUrl: result.audio_file?.url || result.output?.audio_url || '',
+    requestId: String(result.requestId || ''),
+  }
+}
+
+// Suno — AI music generation
+export async function generateSunoMusic(params: { prompt: string; style?: string; duration?: number }): Promise<{ audioUrl: string; requestId: string }> {
+  const result = await fal.subscribe('fal-ai/suno-ai/chirp-v4', {
+    input: {
+      prompt: params.prompt,
+      style: params.style || 'pop',
+      duration: params.duration ?? 30,
+    },
+    pollInterval: 5000,
+  }) as any
+  return {
+    audioUrl: result.audio?.url || result.output?.audio_url || '',
+    requestId: String(result.requestId || ''),
+  }
+}
+
+// ── Voice Clone (Faz 8) ──────────────────────────────────────────────────────
+
+// Fish Audio — voice cloning (fal.ai üzerinden)
+export async function cloneVoiceFishAudio(params: { text: string; referenceAudioUrl: string; voiceId?: string }): Promise<{ audioUrl: string; requestId: string }> {
+  const result = await fal.subscribe('fal-ai/fish-speech-1.5', {
+    input: {
+      text: params.text,
+      reference_audio_url: params.referenceAudioUrl,
+    },
+    pollInterval: 2000,
+  }) as any
+  return {
+    audioUrl: result.audio?.url || result.output?.audio_url || '',
+    requestId: String(result.requestId || ''),
+  }
+}
+
+// ElevenLabs voice clone (fal.ai üzerinden)
+export async function cloneVoiceElevenLabs(params: { text: string; voiceId?: string }): Promise<{ audioUrl: string; requestId: string }> {
+  const result = await fal.subscribe('fal-ai/elevenlabs/tts', {
+    input: {
+      text: params.text,
+      voice_id: params.voiceId || 'pNInz6obpgDQGcFmaJgB',
+    },
+    pollInterval: 2000,
+  }) as any
+  return {
+    audioUrl: result.audio?.url || result.output?.audio_url || '',
+    requestId: String(result.requestId || ''),
+  }
 }
 
 export { fal }
