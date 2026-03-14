@@ -624,3 +624,112 @@ export async function cloneVoiceElevenLabs(params: { text: string; voiceId?: str
 }
 
 export { fal }
+
+// ── Image I2I functions (Faz A) ──────────────────────────────────────────────
+
+// Flux Dev Redux — image variation
+export async function fluxDevRedux(params: {
+  imageUrl: string
+  prompt?: string
+  strength?: number
+}): Promise<{ imageUrl: string; requestId: string }> {
+  const result = await fal.subscribe('fal-ai/flux/dev/redux', {
+    input: {
+      image_url: params.imageUrl,
+      prompt: params.prompt || '',
+      strength: params.strength ?? 0.8,
+    } as any,
+    pollInterval: 2000,
+  }) as any
+  return { imageUrl: result.data?.images?.[0]?.url || '', requestId: String(result.requestId || '') }
+}
+
+// Flux Canny Pro — edge-controlled generation
+export async function fluxCannyPro(params: {
+  imageUrl: string
+  prompt: string
+  strength?: number
+}): Promise<{ imageUrl: string; requestId: string }> {
+  const result = await fal.subscribe('fal-ai/flux-pro/v1/canny', {
+    input: {
+      control_image_url: params.imageUrl,
+      prompt: params.prompt,
+      control_strength: params.strength ?? 0.7,
+    } as any,
+    pollInterval: 2000,
+  }) as any
+  return { imageUrl: result.data?.images?.[0]?.url || '', requestId: String(result.requestId || '') }
+}
+
+// Flux Depth Pro — depth-controlled generation
+export async function fluxDepthPro(params: {
+  imageUrl: string
+  prompt: string
+  strength?: number
+}): Promise<{ imageUrl: string; requestId: string }> {
+  const result = await fal.subscribe('fal-ai/flux-pro/v1/depth', {
+    input: {
+      control_image_url: params.imageUrl,
+      prompt: params.prompt,
+      control_strength: params.strength ?? 0.7,
+    } as any,
+    pollInterval: 2000,
+  }) as any
+  return { imageUrl: result.data?.images?.[0]?.url || '', requestId: String(result.requestId || '') }
+}
+
+// Stable Diffusion img2img
+export async function img2ImgSD(params: {
+  imageUrl: string
+  prompt: string
+  strength?: number
+  negativePrompt?: string
+}): Promise<{ imageUrl: string; requestId: string }> {
+  const result = await fal.subscribe('fal-ai/stable-diffusion-v3-medium', {
+    input: {
+      image_url: params.imageUrl,
+      prompt: params.prompt,
+      strength: params.strength ?? 0.65,
+      negative_prompt: params.negativePrompt || 'blurry, bad quality',
+      num_images: 1,
+    } as any,
+    pollInterval: 2000,
+  }) as any
+  return { imageUrl: result.data?.images?.[0]?.url || '', requestId: String(result.requestId || '') }
+}
+
+// SD ControlNets (SDXL)
+export async function sdControlNets(params: {
+  imageUrl: string
+  prompt: string
+  controlType?: 'canny' | 'depth' | 'pose' | 'scribble'
+  strength?: number
+}): Promise<{ imageUrl: string; requestId: string }> {
+  const result = await fal.subscribe('fal-ai/controlnet-sdxl', {
+    input: {
+      image_url: params.imageUrl,
+      prompt: params.prompt,
+      controlnet_conditioning_scale: params.strength ?? 0.8,
+      control_type: params.controlType || 'canny',
+    } as any,
+    pollInterval: 2000,
+  }) as any
+  return { imageUrl: result.data?.images?.[0]?.url || '', requestId: String(result.requestId || '') }
+}
+
+// Sketch to Image (uses Flux Canny with sketch preset)
+export async function sketchToImage(params: {
+  imageUrl: string
+  prompt: string
+  strength?: number
+}): Promise<{ imageUrl: string; requestId: string }> {
+  const result = await fal.subscribe('fal-ai/flux-pro/v1/canny', {
+    input: {
+      control_image_url: params.imageUrl,
+      prompt: params.prompt,
+      control_strength: params.strength ?? 0.9,
+    } as any,
+    pollInterval: 2000,
+  }) as any
+  return { imageUrl: result.data?.images?.[0]?.url || '', requestId: String(result.requestId || '') }
+}

@@ -17,6 +17,7 @@ import { SetVariableNodeContent, GetVariableNodeContent, TextFormatterNodeConten
 import { PromptVariableEditor } from './PromptVariableEditor'
 import { TextIteratorNodeContent as IteratorTextNodeContent, ImageIteratorNodeContent, TaskManagerNodeContent } from './IteratorNodes'
 import { ThreeDNodeContent, AudioGenNodeContent, VoiceCloneNodeContent } from './SpecialNodes'
+import { ImageI2INodeContent } from './ImageI2INodes'
 
 // Highlight ring class for card badge navigation
 function useNodeHighlight(id: string) {
@@ -992,15 +993,9 @@ export const nodeTypes = {
   briaReplaceBgNode: SoonNodeContent,
   relight20Node: SoonNodeContent,
   qwenImageEdit2511Node: SoonNodeContent,
-  // Image i2i soon
+  // Image i2i — qwen & controlnet-lora still soon
   qwenMultiAngleNode: SoonNodeContent,
-  fluxDevReduxNode: SoonNodeContent,
   fluxControlNetLoraNode: SoonNodeContent,
-  fluxCannyProNode: SoonNodeContent,
-  fluxDepthProNode: SoonNodeContent,
-  img2ImgSdNode: SoonNodeContent,
-  sdControlNetsNode: SoonNodeContent,
-  sketchToImageNode: SoonNodeContent,
   // Image enhance soon
   topazImageUpscaleNode: SoonNodeContent,
   topazSharpenNode: SoonNodeContent,
@@ -1120,6 +1115,13 @@ export const nodeTypes = {
   // Voice clone — Faz 8
   fishAudioCloneNode: VoiceCloneNodeContent,
   elevenLabsCloneNode: VoiceCloneNodeContent,
+  // Image I2I — Faz A
+  fluxDevReduxNode: ImageI2INodeContent,
+  fluxCannyProNode: ImageI2INodeContent,
+  fluxDepthProNode: ImageI2INodeContent,
+  img2ImgSdNode: ImageI2INodeContent,
+  sdControlNetsNode: ImageI2INodeContent,
+  sketchToImageNode: ImageI2INodeContent,
   fluxReduxControlNetNode: SoonNodeContent,
   sdxlConsistentCharNode: SoonNodeContent,
   sdxlMultiControlNetLoraNode: SoonNodeContent,
