@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { ChatMessage, type ChatMessageData } from './ChatMessage'
 import { ChatInput, type SuggestedAction } from './ChatInput'
-import { Bot, Sparkles } from 'lucide-react'
+import { Bot } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { PipelineState } from '@/lib/hooks/use-orchestrate-pipeline'
 
@@ -53,28 +53,20 @@ interface ChatPanelProps {
   aspectRatio?: string
   onScenesDetected?: (plan: ScenePlan) => void
   onCardBadgeClick?: (cardId: string) => void
-  /** Messages injected from parent (tool_call, card_badge, etc.) */
   injectedMessages?: ChatMessageData[]
-  /** Called after injected messages are consumed */
   onInjectedConsumed?: () => void
-  /** Current brief config — sent as context so AI can revise */
   briefContext?: Record<string, unknown> | null
-  /** Called when AI returns a partial brief_update (field-level changes) */
   onBriefUpdate?: (updates: Record<string, unknown>) => void
-  /** Context-aware suggested action chips above input */
   suggestedActions?: SuggestedAction[]
-  /** Called when user clicks "Generate now" action */
   onGenerateNow?: () => void
-  /** Pipeline execution state for progress bar */
   pipelineState?: PipelineState
-  /** In-place message updates (id → partial updates) */
   messageUpdates?: Map<string, Partial<ChatMessageData>>
 }
 
 const WELCOME_MESSAGE: ChatMessageData = {
   id: 'welcome',
   role: 'assistant',
-  content: `👋 Hi! I'm your AI Video Director.\n\nI'll help you transform your idea into a scene-by-scene video plan. Tell me what kind of video you want to create, and I'll ask a few quick questions to get the details right.\n\nYou can also adjust the style, duration, and voice settings on the right panel. Let's make something great! 🎬`,
+  content: `Hi! I'm your AI Video Director.\n\nTell me what kind of video you want to create — I'll turn it into a scene-by-scene plan. 🎬`,
 }
 
 export function ChatPanel({
@@ -100,7 +92,6 @@ export function ChatPanel({
   const abortRef = useRef<AbortController | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  // Consume injected messages from parent
   useEffect(() => {
     if (injectedMessages && injectedMessages.length > 0) {
       setMessages(prev => [...prev, ...injectedMessages])
@@ -109,7 +100,6 @@ export function ChatPanel({
   }, [injectedMessages, onInjectedConsumed])
   const initialPromptSent = useRef(false)
 
-  // Apply in-place updates to messages (tool_call running → success)
   const displayMessages = useMemo(() => {
     if (!messageUpdates || messageUpdates.size === 0) return messages
     return messages.map(msg => {
@@ -132,7 +122,6 @@ export function ChatPanel({
   }, [initialPrompt])
 
   const sendMessage = useCallback(async (content: string) => {
-    // Intercept __GENERATE_NOW__ magic command
     if (content === '__GENERATE_NOW__') {
       onGenerateNow?.()
       return
@@ -208,7 +197,6 @@ export function ChatPanel({
       setMessages(prev => [...prev, assistantMessage])
       setStreamingContent('')
 
-      // Parse scene plan (full replacement) or brief_update (partial fields)
       const plan = extractScenePlan(accumulated)
       if (plan && onScenesDetected) {
         onScenesDetected(plan)
@@ -246,47 +234,36 @@ export function ChatPanel({
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-black/20 backdrop-blur-xl flex-shrink-0">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#a78bfa] to-[#06d6a0] flex items-center justify-center">
-          <Bot className="w-4 h-4 text-white" />
+    <div className="flex flex-col h-full bg-[#080112]">
+
+      {/* ── Header ─────────────────────────────────────────── */}
+      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-white/[0.06] flex-shrink-0">
+        <div className="w-6 h-6 rounded-lg bg-white/[0.06] flex items-center justify-center">
+          <Bot className="w-3.5 h-3.5 text-white/40" />
         </div>
-        <div>
-          <p className="text-sm font-semibold text-white">AI Video Director</p>
-          <p className="text-[10px] text-zinc-500 flex items-center gap-1">
-            {isLoading ? (
-              <>
-                <span className="w-1.5 h-1.5 bg-[#D1FE17] rounded-full animate-pulse" />
-                Thinking...
-              </>
-            ) : (
-              <>
-                <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-                Online
-              </>
-            )}
-          </p>
-        </div>
-        <div className="ml-auto flex items-center gap-1 text-[10px] text-zinc-500">
-          <Sparkles className="w-3 h-3" />
-          GPT-4o
+        <span className="flex-1 text-[12px] font-medium text-white/60 tracking-tight">
+          AI Video Director
+        </span>
+        <div className="flex items-center gap-1.5">
+          <span className={`w-1 h-1 rounded-full transition-colors ${isLoading ? 'bg-[#a78bfa]/60 animate-pulse' : 'bg-white/15'}`} />
+          <span className="text-[10px] text-zinc-700">GPT-4o</span>
         </div>
       </div>
 
-      {/* Pipeline progress bar */}
+      {/* ── Pipeline progress ───────────────────────────────── */}
       {pipelineState?.isRunning && (
-        <div className="px-4 py-2 border-b border-white/10 bg-black/20 flex-shrink-0">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-medium text-[#a78bfa]">
-              {pipelineState.currentStep?.replace(/_/g, ' ') || 'Starting...'}
-            </span>
+        <div className="px-4 py-2 border-b border-white/[0.04] flex-shrink-0">
+          <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] text-zinc-500">
+              {pipelineState.currentStep?.replace(/_/g, ' ') || 'Starting…'}
+            </span>
+            <span className="text-[10px] text-zinc-700">
               {pipelineState.completedSteps}/{pipelineState.totalSteps}
             </span>
           </div>
-          <div className="h-1 bg-white/[0.06] rounded-full overflow-hidden">
+          <div className="h-[1px] bg-white/[0.05] rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-gradient-to-r from-[#a78bfa] to-[#06d6a0] rounded-full"
+              className="h-full bg-white/20 rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${pipelineState.progress}%` }}
               transition={{ duration: 0.4, ease: 'easeOut' }}
@@ -295,7 +272,8 @@ export function ChatPanel({
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      {/* ── Messages ────────────────────────────────────────── */}
+      <div className="flex-1 overflow-y-auto px-4 py-5 space-y-3 custom-scrollbar">
         <AnimatePresence>
           {displayMessages.map((msg) => (
             <ChatMessage key={msg.id} message={msg} onCardBadgeClick={onCardBadgeClick} />
@@ -312,32 +290,28 @@ export function ChatPanel({
               key="typing"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex gap-3"
+              className="flex items-center gap-1 pl-1 pt-1"
             >
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#a78bfa] to-[#06d6a0] flex items-center justify-center flex-shrink-0">
-                <Bot className="w-4 h-4 text-white" />
-              </div>
-              <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-white/[0.05] border border-white/10 flex items-center gap-1.5">
-                {[0, 0.15, 0.3].map((delay, i) => (
-                  <motion.span
-                    key={i}
-                    className="w-1.5 h-1.5 bg-[#a78bfa] rounded-full"
-                    animate={{ y: ['0%', '-50%', '0%'] }}
-                    transition={{ duration: 0.6, repeat: Infinity, delay }}
-                  />
-                ))}
-              </div>
+              {[0, 0.12, 0.24].map((delay, i) => (
+                <motion.span
+                  key={i}
+                  className="w-1 h-1 rounded-full bg-white/20"
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{ duration: 0.8, repeat: Infinity, delay }}
+                />
+              ))}
             </motion.div>
           )}
         </AnimatePresence>
         <div ref={bottomRef} />
       </div>
 
+      {/* ── Input ───────────────────────────────────────────── */}
       <ChatInput
         onSend={sendMessage}
         isLoading={isLoading}
         onStop={handleStop}
-        placeholder="Describe your next scene idea or ask a question..."
+        placeholder="Describe your video idea…"
         suggestedActions={suggestedActions}
       />
     </div>

@@ -742,7 +742,7 @@ const LLMNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) => {
     <motion.div
       initial={{ scale: 0.96, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className={`relative w-[256px] rounded-2xl overflow-hidden transition-all nodrag
+      className={`relative w-[256px] rounded-2xl overflow-hidden transition-all
         ${selected ? 'ring-1 ring-[#f43f5e]/35' : ''}
         ${highlightClasses(isHighlighted)}`}
       style={{

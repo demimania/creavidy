@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, KeyboardEvent } from 'react'
-import { Send, Loader2, Square } from 'lucide-react'
+import { ArrowUp, Square } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export interface SuggestedAction {
@@ -23,7 +23,7 @@ export function ChatInput({
   onSend,
   isLoading,
   onStop,
-  placeholder = 'Type a message...',
+  placeholder = 'Type a message…',
   disabled,
   suggestedActions,
 }: ChatInputProps) {
@@ -35,7 +35,6 @@ export function ChatInput({
     if (!trimmed || isLoading || disabled) return
     onSend(trimmed)
     setValue('')
-    // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
     }
@@ -52,29 +51,37 @@ export function ChatInput({
     const el = textareaRef.current
     if (!el) return
     el.style.height = 'auto'
-    el.style.height = `${Math.min(el.scrollHeight, 160)}px`
+    el.style.height = `${Math.min(el.scrollHeight, 140)}px`
   }
 
+  const hasValue = value.trim().length > 0
+
   return (
-    <div className="border-t border-white/10 bg-black/20 backdrop-blur-xl p-4">
-      {/* Suggested actions */}
+    <div className="border-t border-white/[0.05] px-3 pt-3 pb-3 flex-shrink-0">
+
+      {/* Suggested action chips */}
       {suggestedActions && suggestedActions.length > 0 && !isLoading && (
-        <div className="flex flex-wrap gap-1.5 mb-2.5">
+        <div className="flex flex-wrap gap-1 mb-2.5">
           {suggestedActions.map((action, i) => (
             <button
               key={i}
               onClick={() => onSend(action.prompt)}
               disabled={disabled}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white/[0.04] border border-white/10 text-zinc-400 hover:text-white hover:border-[#a78bfa]/40 hover:bg-[#a78bfa]/10 transition-all disabled:opacity-30"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px]
+                bg-white/[0.03] border border-white/[0.07] text-zinc-600
+                hover:text-white/60 hover:border-white/12 hover:bg-white/[0.06]
+                transition-all disabled:opacity-30"
             >
-              {action.icon && <span className="text-[10px]">{action.icon}</span>}
+              {action.icon && <span className="text-[9px]">{action.icon}</span>}
               {action.label}
             </button>
           ))}
         </div>
       )}
 
-      <div className="flex items-end gap-3 bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3 focus-within:border-[#a78bfa]/50 transition-colors">
+      {/* Input row */}
+      <div className="flex items-end gap-2 bg-white/[0.04] border border-white/[0.07]
+        rounded-xl px-3 py-2.5 focus-within:border-white/12 transition-colors">
         <textarea
           ref={textareaRef}
           value={value}
@@ -84,7 +91,9 @@ export function ChatInput({
           placeholder={placeholder}
           disabled={disabled}
           rows={1}
-          className="flex-1 bg-transparent text-white placeholder:text-zinc-600 text-sm leading-relaxed resize-none focus:outline-none min-h-[24px] max-h-[160px] disabled:opacity-50"
+          className="flex-1 bg-transparent text-[12px] text-white/75 placeholder:text-zinc-700
+            leading-relaxed resize-none focus:outline-none min-h-[20px] max-h-[140px]
+            disabled:opacity-40"
         />
 
         <AnimatePresence mode="wait">
@@ -95,9 +104,11 @@ export function ChatInput({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
               onClick={onStop}
-              className="flex-shrink-0 w-8 h-8 rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 flex items-center justify-center transition-colors"
+              className="flex-shrink-0 w-6 h-6 rounded-lg bg-white/[0.06] border border-white/10
+                text-white/30 hover:text-white/60 hover:bg-white/10
+                flex items-center justify-center transition-colors"
             >
-              <Square className="w-3.5 h-3.5 fill-current" />
+              <Square className="w-2.5 h-2.5 fill-current" />
             </motion.button>
           ) : (
             <motion.button
@@ -106,19 +117,19 @@ export function ChatInput({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
               onClick={handleSend}
-              disabled={!value.trim() || disabled}
-              className="flex-shrink-0 w-8 h-8 rounded-xl bg-gradient-to-br from-[#a78bfa] to-[#06d6a0] text-white flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
+              disabled={!hasValue || disabled}
+              className="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center transition-all
+                disabled:opacity-20 disabled:cursor-not-allowed"
+              style={{
+                background: hasValue ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}
             >
-              <Send className="w-3.5 h-3.5" />
+              <ArrowUp className="w-3 h-3 text-white/60" />
             </motion.button>
           )}
         </AnimatePresence>
       </div>
-
-      <p className="text-[10px] text-zinc-600 text-center mt-2">
-        Press <kbd className="px-1 py-0.5 rounded bg-white/10 text-zinc-400 font-mono text-[9px]">Enter</kbd> to send,{' '}
-        <kbd className="px-1 py-0.5 rounded bg-white/10 text-zinc-400 font-mono text-[9px]">Shift+Enter</kbd> for new line
-      </p>
     </div>
   )
 }
