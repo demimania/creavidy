@@ -4,9 +4,9 @@ import { memo, useState, useRef, useEffect } from 'react'
 import { Handle, Position, type NodeProps } from 'reactflow'
 import { motion } from 'framer-motion'
 import {
-  FileText, Mic, Paintbrush, Film, Subtitles, Download, Loader2, Check, X, Clock, MoreHorizontal, Plus, Play, ChevronLeft, ChevronRight, Terminal, ListTree, ArrowRightLeft, Repeat, Settings, Copy, ExternalLink
+  FileText, Mic, Paintbrush, Film, Subtitles, Download, Loader2, Check, X, Clock, MoreHorizontal, Plus, Play, ChevronLeft, ChevronRight, Terminal, ListTree, ArrowRightLeft, Repeat, Settings, Copy, ExternalLink, MessageSquare, ChevronDown
 } from 'lucide-react'
-import { useWorkspaceStore, NODE_COLORS, type NodeData, type NodeStatus, type ScriptConfig, type ImageGenConfig, type VideoGenConfig } from '@/lib/stores/workspace-store'
+import { useWorkspaceStore, NODE_COLORS, type NodeData, type NodeStatus, type ScriptConfig, type ImageGenConfig, type VideoGenConfig, type LLMConfig } from '@/lib/stores/workspace-store'
 import { executeSingleNode } from '@/lib/ai/execution-engine'
 import { toast } from 'sonner'
 import { VideoBriefNodeContent, FilmStripNodeContent } from './StudioNodes'
@@ -724,9 +724,154 @@ const GenericLogicalNode = ({ data, selected, icon: Icon, color, inputs, outputs
   )
 }
 
-const LLMNodeContent = memo((props: NodeProps<NodeData>) => (
-  <GenericLogicalNode {...props} icon={Terminal} color={NODE_COLORS.llm} inputs={[{ id: 'prompt', label: 'Prompt' }, { id: 'sys', label: 'System' }]} outputs={[{ id: 'out', label: 'Result' }]} />
-))
+// ── AI Chat Node — Minimalist ────────────────────────────────────────────────
+const LLM_MODELS = [
+  { value: 'gpt-4o',                 label: 'GPT-4o',       badge: 'GPT'  },
+  { value: 'gemini-2.0-flash',       label: 'Gemini 2.0',   badge: 'GEM'  },
+  { value: 'claude-3-5-sonnet',      label: 'Claude 3.5',   badge: 'CLD'  },
+]
+
+const LLMNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) => {
+  const color = '#f43f5e'
+  const updateNodeConfig = useWorkspaceStore(s => s.updateNodeConfig)
+  const config = (data.config || {}) as LLMConfig
+  const isHighlighted = useNodeHighlight(id)
+  const currentModel = LLM_MODELS.find(m => m.value === config.model) || LLM_MODELS[0]
+
+  return (
+    <motion.div
+      initial={{ scale: 0.96, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      className={`relative w-[256px] rounded-2xl overflow-hidden transition-all nodrag
+        ${selected ? 'ring-1 ring-[#f43f5e]/35' : ''}
+        ${highlightClasses(isHighlighted)}`}
+      style={{
+        background: '#0d0118',
+        border: selected ? '1px solid rgba(244,63,94,0.25)' : '1px solid rgba(255,255,255,0.06)',
+        boxShadow: selected
+          ? '0 0 0 1px rgba(244,63,94,0.15), 0 12px 40px rgba(244,63,94,0.1)'
+          : '0 4px 28px rgba(0,0,0,0.5)',
+      }}
+    >
+      {/* Top accent line */}
+      <div className="h-[1.5px]" style={{ background: `linear-gradient(90deg, ${color} 0%, transparent 70%)` }} />
+
+      {/* Input handles */}
+      <Handle type="target" position={Position.Left} id="prompt"
+        className="!w-2.5 !h-2.5 !rounded-full !border-2 !border-[#0d0118]"
+        style={{ backgroundColor: color, top: '38%' }} />
+      <div className="absolute left-0 pointer-events-none select-none"
+        style={{ top: '38%', transform: 'translateX(calc(-100% - 6px)) translateY(-50%)' }}>
+        <span className="text-[8px] font-medium" style={{ color }}>Prompt</span>
+      </div>
+
+      <Handle type="target" position={Position.Left} id="sys"
+        className="!w-2.5 !h-2.5 !rounded-full !border-2 !border-[#0d0118]"
+        style={{ backgroundColor: 'rgba(244,63,94,0.35)', top: '62%' }} />
+      <div className="absolute left-0 pointer-events-none select-none"
+        style={{ top: '62%', transform: 'translateX(calc(-100% - 6px)) translateY(-50%)' }}>
+        <span className="text-[8px] text-zinc-600">System</span>
+      </div>
+
+      {/* Header */}
+      <div className="flex items-center gap-2 px-3 pt-3 pb-2">
+        <div className="w-7 h-7 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.14)' }}>
+          <MessageSquare className="w-3.5 h-3.5" style={{ color }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[11px] font-medium text-white/80 truncate leading-tight">
+            {data.label || 'AI Chat'}
+          </p>
+          <p className="text-[9px] text-zinc-600 leading-tight">{currentModel.badge}</p>
+        </div>
+        {STATUS_ICONS[data.status as keyof typeof STATUS_ICONS]}
+        <NodeMenuWrapper nodeId={id} />
+      </div>
+
+      {/* Divider */}
+      <div className="mx-3 border-t border-white/4" />
+
+      {/* Model selector */}
+      <div className="px-3 pt-2 pb-1 relative">
+        <select
+          value={config.model || 'gpt-4o'}
+          onChange={e => updateNodeConfig(id, { model: e.target.value })}
+          className="w-full appearance-none bg-white/[0.03] border border-white/[0.07] rounded-lg
+            px-2.5 pr-7 py-1.5 text-[10px] text-zinc-300 outline-none cursor-pointer
+            hover:bg-white/[0.06] hover:border-white/10 transition-all"
+        >
+          {LLM_MODELS.map(m => (
+            <option key={m.value} value={m.value} className="bg-[#1a0530]">{m.label}</option>
+          ))}
+        </select>
+        <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-600 pointer-events-none" />
+      </div>
+
+      {/* System prompt */}
+      <div className="px-3 pb-2">
+        <textarea
+          value={config.systemPrompt || ''}
+          onChange={e => updateNodeConfig(id, { systemPrompt: e.target.value })}
+          placeholder="System prompt…"
+          rows={2}
+          className="w-full bg-transparent text-[10px] text-zinc-400 placeholder:text-zinc-700
+            outline-none resize-none leading-relaxed py-1
+            border-b border-white/5 focus:border-white/12 transition-colors"
+        />
+      </div>
+
+      {/* Response preview */}
+      {data.status === 'ready' && data.outputUrl && (
+        <div className="mx-3 mb-2 p-2.5 rounded-xl"
+          style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <p className="text-[9.5px] text-zinc-500 leading-relaxed line-clamp-3">{data.outputUrl}</p>
+          <button
+            onClick={() => { navigator.clipboard.writeText(data.outputUrl || ''); toast.success('Copied!') }}
+            className="mt-1.5 flex items-center gap-1 text-[8.5px] text-zinc-600 hover:text-zinc-400 transition-colors"
+          >
+            <Copy className="w-2.5 h-2.5" /> Copy response
+          </button>
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="flex items-center px-3 pb-3 pt-1 gap-2">
+        <span className="text-[9px] text-zinc-700 flex-1">3 cr / run</span>
+        <button
+          onClick={async () => {
+            try {
+              const res = await executeSingleNode(id)
+              if (res.success) toast.success('Response generated')
+              else toast.error(res.error)
+            } catch (e: any) { toast.error(e.message) }
+          }}
+          disabled={data.status === 'processing'}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-medium
+            transition-all disabled:opacity-40 active:scale-95"
+          style={{
+            background: data.status === 'processing' ? 'rgba(244,63,94,0.07)' : 'rgba(244,63,94,0.12)',
+            color,
+            border: '1px solid rgba(244,63,94,0.18)',
+          }}
+        >
+          {data.status === 'processing'
+            ? <><Loader2 className="w-2.5 h-2.5 animate-spin" />Running…</>
+            : <><Play className="w-2.5 h-2.5" />Run</>}
+        </button>
+      </div>
+
+      {/* Output handle */}
+      <div className="absolute right-0 pointer-events-none select-none"
+        style={{ top: '50%', transform: 'translateX(calc(100% + 6px)) translateY(-50%)' }}>
+        <span className="text-[8px] font-medium" style={{ color }}>Result</span>
+      </div>
+      <Handle type="source" position={Position.Right} id="out"
+        className="!w-2.5 !h-2.5 !rounded-full !border-2 !border-[#0d0118]"
+        style={{ backgroundColor: color, top: '50%' }} />
+    </motion.div>
+  )
+})
 LLMNodeContent.displayName = 'LLMNode'
 
 const ArrayNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) => {
