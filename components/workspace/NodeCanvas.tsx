@@ -135,7 +135,7 @@ export function NodeCanvas() {
       if (!nodeDefId || !reactFlowInstance.current || !reactFlowWrapper.current) return
 
       const def = getNodeDef(nodeDefId)
-      if (!def || def.status === 'soon') return
+      if (!def) return
 
       const bounds = reactFlowWrapper.current.getBoundingClientRect()
       const position = reactFlowInstance.current.project({

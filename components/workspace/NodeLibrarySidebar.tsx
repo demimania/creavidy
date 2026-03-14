@@ -44,24 +44,21 @@ function NodeCard({ node, onAdd }: { node: NodeDefinition; onAdd: (node: NodeDef
   const badge = STATUS_BADGE[node.status]
 
   const handleDragStart = useCallback((e: React.DragEvent) => {
-    if (isSoon) { e.preventDefault(); return }
     e.dataTransfer.setData('application/creavidy-node', node.id)
     e.dataTransfer.effectAllowed = 'copy'
-  }, [node.id, isSoon])
+  }, [node.id])
 
   return (
     <div
-      draggable={!isSoon}
+      draggable
       onDragStart={handleDragStart}
-      onClick={() => !isSoon && onAdd(node)}
+      onClick={() => onAdd(node)}
       title={node.description}
       className={`
         group flex items-center gap-2 px-2 py-1.5 rounded-lg
-        transition-all duration-150 cursor-pointer select-none
-        ${isSoon
-          ? 'opacity-40 cursor-not-allowed'
-          : 'hover:bg-white/8 active:bg-white/12 cursor-grab'
-        }
+        transition-all duration-150 cursor-grab select-none
+        hover:bg-white/8 active:bg-white/12
+        ${isSoon ? 'opacity-50' : ''}
       `}
     >
       {/* Icon */}
