@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useState, useEffect, useRef, useCallback } from 'react'
+import { useDragControls } from 'framer-motion'
 import { ReactFlowProvider } from 'reactflow'
 import { ArrowLeft, Download, Coins, Pencil, Loader2, MessageSquare, Settings2, PanelRightClose, X, Minus, Cloud, Check, LayoutDashboard } from 'lucide-react'
 import Link from 'next/link'
@@ -25,6 +26,8 @@ function WorkspaceContent() {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Prevents load-effect from overwriting canvas right after we create a new project
   const justCreatedIdRef = useRef<string | null>(null)
+  // Chat window drag
+  const chatDragControls = useDragControls()
 
   const { projectTitle, setProjectTitle, nodes, edges, setNodes, setEdges, undo, redo, _history, _historyFuture, selectedNodeId } = useWorkspaceStore()
 
@@ -303,6 +306,11 @@ function WorkspaceContent() {
           <AnimatePresence>
             {chatOpen && (
               <motion.div
+                drag
+                dragControls={chatDragControls}
+                dragListener={false}
+                dragMomentum={false}
+                dragElastic={0}
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={chatMinimized
                   ? { opacity: 1, y: 0, scale: 1, height: 48 }
@@ -320,7 +328,8 @@ function WorkspaceContent() {
               >
                 {/* Minimize bar — sadece minimize edilince görünür */}
                 {chatMinimized && (
-                  <div className="flex items-center gap-2 h-12 px-3 cursor-pointer"
+                  <div className="flex items-center gap-2 h-12 px-3 cursor-grab active:cursor-grabbing select-none"
+                    onPointerDown={e => chatDragControls.start(e)}
                     onClick={() => setChatMinimized(false)}>
                     <div className="w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0"
                       style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}>
@@ -363,7 +372,7 @@ function WorkspaceContent() {
                         <X className="w-3 h-3" />
                       </button>
                     </div>
-                    <WorkspaceChatPanel projectId={projectId} />
+                    <WorkspaceChatPanel projectId={projectId} onDragHandlePointerDown={e => chatDragControls.start(e)} />
                   </div>
                 )}
               </motion.div>

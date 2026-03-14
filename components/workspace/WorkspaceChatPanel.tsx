@@ -11,9 +11,10 @@ import { useOrchestratePipeline } from '@/lib/hooks/use-orchestrate-pipeline'
 
 interface WorkspaceChatPanelProps {
   projectId?: string
+  onDragHandlePointerDown?: (e: React.PointerEvent) => void
 }
 
-export function WorkspaceChatPanel({ projectId }: WorkspaceChatPanelProps) {
+export function WorkspaceChatPanel({ projectId, onDragHandlePointerDown }: WorkspaceChatPanelProps) {
   const { addNode, nodes, edges, setEdges, updateNodeConfig, updateNodeOutput, updateNodeStatus, createBrief, setBriefStoryboard } = useWorkspaceStore()
   const [injectedMessages, setInjectedMessages] = useState<ChatMessageData[]>([])
   const reactFlowInstance = useReactFlow()
@@ -359,6 +360,7 @@ export function WorkspaceChatPanel({ projectId }: WorkspaceChatPanelProps) {
       onGenerateNow={handleGenerateNow}
       pipelineState={pipelineState}
       messageUpdates={messageUpdates}
+      onDragHandlePointerDown={onDragHandlePointerDown}
     />
   )
 }

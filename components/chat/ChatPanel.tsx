@@ -61,6 +61,7 @@ interface ChatPanelProps {
   onGenerateNow?: () => void
   pipelineState?: PipelineState
   messageUpdates?: Map<string, Partial<ChatMessageData>>
+  onDragHandlePointerDown?: (e: React.PointerEvent) => void
 }
 
 const WELCOME_MESSAGE: ChatMessageData = {
@@ -85,6 +86,7 @@ export function ChatPanel({
   onGenerateNow,
   pipelineState,
   messageUpdates,
+  onDragHandlePointerDown,
 }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessageData[]>([WELCOME_MESSAGE])
   const [isLoading, setIsLoading] = useState(false)
@@ -236,27 +238,31 @@ export function ChatPanel({
   return (
     <div className="flex flex-col h-full" style={{ background: '#08011a' }}>
 
-      {/* ── Header ─────────────────────────────────────────── */}
-      <div className="relative flex items-center gap-3 px-4 py-3.5 border-b border-[#7c3aed]/20 flex-shrink-0 overflow-hidden">
+      {/* ── Header (drag handle) ──────────────────────────── */}
+      <div
+        className="relative flex items-center gap-3 px-4 py-3.5 border-b border-[#7c3aed]/20 flex-shrink-0 overflow-hidden select-none cursor-grab active:cursor-grabbing"
+        onPointerDown={onDragHandlePointerDown}
+      >
         <div className="absolute inset-0 pointer-events-none"
           style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.18) 0%, rgba(99,102,241,0.08) 50%, transparent 100%)' }} />
         <div className="absolute -top-4 -left-4 w-24 h-24 rounded-full pointer-events-none"
           style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%)', filter: 'blur(12px)' }} />
 
-        <div className="relative w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+        <div className="relative w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 pointer-events-none"
           style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)', boxShadow: '0 0 20px rgba(124,58,237,0.5), 0 0 40px rgba(124,58,237,0.2)' }}>
           <Bot className="w-4 h-4 text-white" />
           <span className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#08011a] transition-colors ${isLoading ? 'bg-[#facc15] animate-pulse' : 'bg-[#4ade80]'}`} />
         </div>
 
-        <div className="flex-1 relative">
+        <div className="flex-1 relative pointer-events-none">
           <p className="text-[13px] font-semibold text-white leading-tight">AI Video Director</p>
           <p className="text-[10px] leading-tight" style={{ color: 'rgba(167,139,250,0.7)' }}>
             {isLoading ? 'Thinking…' : 'Powered by GPT-4o'}
           </p>
         </div>
 
-        <div className="relative flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+        {/* Badge — sağda float butonların solunda durur (pr-14 ile yer açılır) */}
+        <div className="relative flex items-center gap-1.5 px-2.5 py-1 rounded-full pointer-events-none mr-14"
           style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.25)' }}>
           <Sparkles className="w-2.5 h-2.5" style={{ color: '#a78bfa' }} />
           <span className="text-[9px] font-semibold tracking-wide" style={{ color: '#a78bfa' }}>
