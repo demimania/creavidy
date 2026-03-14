@@ -1,4 +1,4 @@
-// CapCut-style 9-step tool call chain types
+// Creavidy 9-step tool call chain types
 
 export type ToolCallName =
   | 'create_card'

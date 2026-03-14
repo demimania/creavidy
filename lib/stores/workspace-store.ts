@@ -146,7 +146,7 @@ export interface SpecialNodeConfig {
   voiceId?: string
 }
 
-// ── CapCut-style nodes ────────────────────────────
+// ── Video Studio nodes ────────────────────────────
 export interface VideoBriefConfig {
   prompt: string;
   theme: string;

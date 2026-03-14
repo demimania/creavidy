@@ -9,7 +9,7 @@ import {
 import { useWorkspaceStore, NODE_COLORS, type NodeData, type NodeStatus, type ScriptConfig, type ImageGenConfig, type VideoGenConfig } from '@/lib/stores/workspace-store'
 import { executeSingleNode } from '@/lib/ai/execution-engine'
 import { toast } from 'sonner'
-import { VideoBriefNodeContent, FilmStripNodeContent } from './CapCutNodes'
+import { VideoBriefNodeContent, FilmStripNodeContent } from './StudioNodes'
 import { ImageEditNodeContent, SoonNodeContent } from './ImageEditNodes'
 import { MultiModelVideoNodeContent } from './MultiModelVideoNode'
 import { LipSyncNodeContent, VideoToVideoNodeContent, VideoUpscaleNodeContent, VideoEnhanceNodeContent } from './VideoEditNodes'

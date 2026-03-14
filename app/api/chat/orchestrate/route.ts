@@ -1,4 +1,4 @@
-// POST /api/chat/orchestrate — 9-step CapCut-style video creation pipeline (SSE)
+// POST /api/chat/orchestrate — 9-step Creavidy video creation pipeline (SSE)
 import { NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { generateScript, generateImage, generateTTS, getCreditCost } from '@/lib/ai/fal-client'

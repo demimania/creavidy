@@ -1,5 +1,5 @@
 // ============================================================================
-// Node Definitions — 220+ node (Weavy.ai birebir katalog)
+// Node Definitions — 220+ node (Creavidy tam katalog)
 // status: 'active' = fal.ai ile çalışıyor | 'beta' = test | 'soon' = yakında
 // ============================================================================
 
@@ -95,7 +95,7 @@ const any  = (n: string): PortDef => ({ name: n, type: 'any' })
 // ─── NODE CATALOG ─────────────────────────────────────────────────────────────
 export const NODE_DEFINITIONS: NodeDefinition[] = [
 
-  // ═══ PRODUCTION — Creavidy CapCut-style ═══════════════════════════════════
+  // ═══ PRODUCTION — Creavidy Video Studio ═══════════════════════════════════
   {
     id: 'videoBriefNode', label: 'Video Brief', icon: '🎬',
     description: 'Videonun hikayesini, stilini ve seslendiricisini ayarla',
@@ -627,10 +627,10 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
   // ═══ IMAGE — EDIT IMAGES (32) ══════════════════════════════════════════════
   {
     id: 'nanoBanana2Node', label: 'Nano Banana 2', icon: '🍌',
-    description: 'Weavy (Google) — gelişmiş görsel düzenleme',
+    description: 'Google — gelişmiş görsel düzenleme',
     category: 'image-edit', subcategory: 'edit',
     inputs: [imgR('Image'), txtR('Prompt')], outputs: [img('Image')],
-    provider: 'Weavy (Google)', creditCost: 15, status: 'soon', isNew: true,
+    provider: 'Google', creditCost: 15, status: 'soon', isNew: true,
   },
   {
     id: 'flux2MaxNode', label: 'Flux 2 Max', icon: '🔥',
@@ -655,10 +655,10 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
   },
   {
     id: 'nanoBananaProNode', label: 'Nano Banana Pro', icon: '🍌',
-    description: 'Weavy (Google) Gemini 3 — profesyonel görsel düzenleme',
+    description: 'Google Gemini 3 — profesyonel görsel düzenleme',
     category: 'image-edit', subcategory: 'edit',
     inputs: [imgR('Image'), txtR('Prompt')], outputs: [img('Image')],
-    provider: 'Weavy (Google)', creditCost: 15, status: 'soon',
+    provider: 'Google', creditCost: 15, status: 'soon',
   },
   {
     id: 'qwenImageEditPlusNode', label: 'Qwen Image Edit Plus', icon: '🔵',
@@ -676,10 +676,10 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
   },
   {
     id: 'nanoBananaNode', label: 'Nano Banana', icon: '🍌',
-    description: 'Weavy (Google) — standart görsel düzenleme',
+    description: 'Google — standart görsel düzenleme',
     category: 'image-edit', subcategory: 'edit',
     inputs: [imgR('Image'), txtR('Prompt')], outputs: [img('Image')],
-    provider: 'Weavy (Google)', creditCost: 10, status: 'soon',
+    provider: 'Google', creditCost: 10, status: 'soon',
   },
   {
     id: 'runwayGen4ImageNode', label: 'Runway Gen-4 Image', icon: '🛫',
@@ -1805,7 +1805,7 @@ export function getNodeDef(id: string): NodeDefinition | undefined {
   return NODE_DEFINITIONS.find(n => n.id === id)
 }
 
-// Wire colors by data type (Weavy-style)
+// Wire colors by data type
 export const WIRE_COLORS: Record<NodeDataType, string> = {
   text:    '#a78bfa',
   image:   '#FFE744',
