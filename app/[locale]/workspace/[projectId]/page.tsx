@@ -26,8 +26,33 @@ function WorkspaceContent() {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Prevents load-effect from overwriting canvas right after we create a new project
   const justCreatedIdRef = useRef<string | null>(null)
-  // Chat window drag
+  // Chat window drag + resize
   const chatDragControls = useDragControls()
+  const [chatSize, setChatSize] = useState({ width: 380, height: 520 })
+  const resizeRef = useRef<{ dir: string; startX: number; startY: number; startW: number; startH: number } | null>(null)
+
+  const startResize = useCallback((e: React.PointerEvent, dir: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    resizeRef.current = { dir, startX: e.clientX, startY: e.clientY, startW: chatSize.width, startH: chatSize.height }
+    const onMove = (ev: PointerEvent) => {
+      if (!resizeRef.current) return
+      const { dir, startX, startY, startW, startH } = resizeRef.current
+      const dx = ev.clientX - startX
+      const dy = ev.clientY - startY
+      setChatSize({
+        width:  dir.includes('e') ? Math.max(300, Math.min(700, startW + dx)) : startW,
+        height: dir.includes('s') ? Math.max(300, Math.min(900, startH + dy)) : startH,
+      })
+    }
+    const onUp = () => {
+      resizeRef.current = null
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+    }
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+  }, [chatSize])
 
   const { projectTitle, setProjectTitle, nodes, edges, setNodes, setEdges, undo, redo, _history, _historyFuture, selectedNodeId } = useWorkspaceStore()
 
@@ -312,18 +337,17 @@ function WorkspaceContent() {
                 dragMomentum={false}
                 dragElastic={0}
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={chatMinimized
-                  ? { opacity: 1, y: 0, scale: 1, height: 48 }
-                  : { opacity: 1, y: 0, scale: 1, height: 520 }
-                }
+                animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 20, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute bottom-14 left-4 z-30 w-[380px] rounded-2xl overflow-hidden flex flex-col"
+                className="absolute bottom-14 left-4 z-30 rounded-2xl overflow-hidden flex flex-col"
                 style={{
-                  maxHeight: 'calc(100% - 80px)',
+                  width: chatSize.width,
+                  height: chatMinimized ? 48 : chatSize.height,
                   background: '#08011a',
                   border: '1px solid rgba(124,58,237,0.25)',
                   boxShadow: '0 0 0 1px rgba(124,58,237,0.1), 0 24px 60px rgba(0,0,0,0.6), 0 0 40px rgba(124,58,237,0.12)',
+                  transition: chatMinimized ? 'height 0.2s ease' : 'none',
                 }}
               >
                 {/* Minimize bar — sadece minimize edilince görünür */}
@@ -375,6 +399,29 @@ function WorkspaceContent() {
                     <WorkspaceChatPanel projectId={projectId} onDragHandlePointerDown={e => chatDragControls.start(e)} />
                   </div>
                 )}
+
+                {/* ── Resize handles (minimize'da gizlenir) ── */}
+                {!chatMinimized && (<>
+                  {/* Sağ kenar */}
+                  <div className="absolute top-0 right-0 w-1.5 h-full cursor-ew-resize z-20 group"
+                    onPointerDown={e => startResize(e, 'e')}>
+                    <div className="absolute right-0 top-0 w-px h-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ background: 'rgba(124,58,237,0.5)' }} />
+                  </div>
+                  {/* Alt kenar */}
+                  <div className="absolute bottom-0 left-0 w-full h-1.5 cursor-ns-resize z-20 group"
+                    onPointerDown={e => startResize(e, 's')}>
+                    <div className="absolute bottom-0 left-0 w-full h-px opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ background: 'rgba(124,58,237,0.5)' }} />
+                  </div>
+                  {/* Alt-sağ köşe */}
+                  <div className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-30 flex items-end justify-end pb-1 pr-1"
+                    onPointerDown={e => startResize(e, 'se')}>
+                    <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                      <path d="M7 1L1 7M7 4L4 7M7 7H4" stroke="rgba(124,58,237,0.5)" strokeWidth="1.2" strokeLinecap="round"/>
+                    </svg>
+                  </div>
+                </>)}
               </motion.div>
             )}
           </AnimatePresence>
