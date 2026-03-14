@@ -27,6 +27,11 @@ const NODE_API_MAP: Record<string, string> = {
   caption:     '/api/generate/caption',
   export:      '/api/generate/video',  // export uses final composited video
   videoBrief:  '/api/generate/script',
+  imageEdit:          '/api/generate/image-edit',
+  fluxKontextNode:    '/api/generate/image-edit',
+  briaRemoveBgNode:   '/api/generate/image-edit',
+  upscaleNode:        '/api/generate/image-edit',
+  fluxFillProNode:    '/api/generate/image-edit',
 }
 
 // ── Build body from node config ─────────────────────────────────────────────
@@ -99,6 +104,17 @@ function buildRequestBody(node: Node<NodeData>, parentOutputs: Record<string, st
         includeAudio: config.includeAudio,
         includeCaptions: config.includeCaptions,
       }
+
+    case 'imageEdit': {
+      const c = config as Record<string, any>
+      return {
+        editType: c.editType || 'kontext',
+        imageUrl: Object.values(parentOutputs).find(url => url?.match(/\.(jpg|jpeg|png|webp)/i) || url?.includes('fal.media') || url?.includes('cdn')) || c.imageUrl || '',
+        prompt: c.prompt,
+        maskUrl: c.maskUrl,
+        scale: c.scale || 2,
+      }
+    }
 
     default:
       return {}

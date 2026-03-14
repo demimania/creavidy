@@ -66,6 +66,8 @@ export const CREDIT_COSTS: Record<string, number> = {
   'seedance-1.5-pro-t2v': 28, 'seedance-1.5-pro-i2v': 28, 'seedance-1.0-lite': 15,
   // Voice
   'elevenlabs': 5, 'openai-tts': 3, 'fal-tts': 2,
+  // Image Edit
+  'flux-kontext-edit': 15, 'remove-bg': 3, 'upscale-esrgan': 5, 'flux-fill-pro': 12,
 }
 
 export function getCreditCost(model: string): number {
@@ -256,7 +258,15 @@ export async function generateScript(params: {
         messages: [
           {
             role: 'system',
-            content: `You are a professional video script writer. Generate a video script with exactly ${params.sceneCount} scenes in ${params.language}. Each scene must have: scene_number, visual_description, narration, duration_seconds. Return as a JSON object with a "scenes" key containing the array, and a "characters" key containing an array of strings (max 5) of the character names EXPLICITLY mentioned in the user's prompt — do NOT invent new characters that are not in the prompt.`
+            content: `You are a professional video script writer. Generate a video script with exactly ${params.sceneCount} scenes covering the first 30 seconds of the story in ${params.language}. Each scene must have: scene_number, visual_description, narration, duration_seconds (each ~10s).
+
+CRITICAL RULES for visual_description:
+- Describe characters by APPEARANCE (hair color, clothing, body type), not just name — so image generation can recreate them consistently
+- Maintain story coherence: same characters must look the SAME across all scenes (same outfit, same features)
+- Include setting details: location, lighting, time of day, camera angle
+- Use the SAME art style keywords in every scene for visual consistency
+
+Return a JSON object with a "scenes" key containing the array, and a "characters" key containing an array of strings (max 5) of the character names EXPLICITLY mentioned in the user's prompt — do NOT invent new characters that are not in the prompt.`
           },
           { role: 'user', content: params.prompt }
         ],
@@ -283,7 +293,15 @@ export async function generateScript(params: {
       body: JSON.stringify({
         contents: [{
           parts: [{
-            text: `You are a professional video script writer. Generate a video script with exactly ${params.sceneCount} scenes in ${params.language}. Each scene: scene_number, visual_description, narration, duration_seconds. Return a JSON object with a "scenes" key containing the array, and a "characters" key containing an array of strings (max 5) of the character names EXPLICITLY mentioned in the user's prompt — do NOT invent new characters that are not in the prompt.\n\nPrompt: ${params.prompt}`
+            text: `You are a professional video script writer. Generate a video script with exactly ${params.sceneCount} scenes covering the first 30 seconds of the story in ${params.language}. Each scene: scene_number, visual_description, narration, duration_seconds (each ~10s).
+
+CRITICAL RULES for visual_description:
+- Describe characters by APPEARANCE (hair color, clothing, body type), not just name — so image generation can recreate them consistently
+- Maintain story coherence: same characters must look the SAME across all scenes (same outfit, same features)
+- Include setting details: location, lighting, time of day, camera angle
+- Use the SAME art style keywords in every scene for visual consistency
+
+Return a JSON object with a "scenes" key containing the array, and a "characters" key containing an array of strings (max 5) of the character names EXPLICITLY mentioned in the user's prompt — do NOT invent new characters that are not in the prompt.\n\nPrompt: ${params.prompt}`
           }]
         }],
         generationConfig: { temperature: 0.7, responseMimeType: 'application/json' },
@@ -311,6 +329,87 @@ export async function generateScript(params: {
   }
 
   throw new Error(`Unknown script model: ${params.model}`)
+}
+
+// ── Image Editing functions ──────────────────────────────────────────────────
+
+// FAL endpoint IDs for image editing
+export const FAL_IMAGE_EDIT_MODELS: Record<string, string> = {
+  'flux-kontext':    'fal-ai/flux-pro/kontext',
+  'flux-fill-pro':   'fal-ai/flux/inpainting',
+  'remove-bg':       'fal-ai/birefnet',
+  'upscale-esrgan':  'fal-ai/esrgan',
+  'upscale-aura':    'fal-ai/aura-sr',
+}
+
+export async function editImageKontext(params: {
+  imageUrl: string
+  prompt: string
+}) {
+  const result = await fal.subscribe('fal-ai/flux-pro/kontext', {
+    input: {
+      image_url: params.imageUrl,
+      prompt: params.prompt,
+    },
+  })
+  return {
+    imageUrl: (result.data as any)?.images?.[0]?.url || '',
+    requestId: result.requestId,
+    cost: 15,
+  }
+}
+
+export async function removeBackground(params: {
+  imageUrl: string
+}) {
+  const result = await fal.subscribe('fal-ai/birefnet', {
+    input: {
+      image_url: params.imageUrl,
+      model: 'General Use (Light)',
+      operating_resolution: '1024x1024',
+    },
+  })
+  return {
+    imageUrl: (result.data as any)?.image?.url || '',
+    requestId: result.requestId,
+    cost: 3,
+  }
+}
+
+export async function upscaleImage(params: {
+  imageUrl: string
+  scale?: number
+}) {
+  const result = await fal.subscribe('fal-ai/esrgan', {
+    input: {
+      image_url: params.imageUrl,
+      scale: params.scale || 2,
+    },
+  })
+  return {
+    imageUrl: (result.data as any)?.image?.url || (result.data as any)?.images?.[0]?.url || '',
+    requestId: result.requestId,
+    cost: 5,
+  }
+}
+
+export async function inpaintImage(params: {
+  imageUrl: string
+  maskUrl: string
+  prompt: string
+}) {
+  const result = await fal.subscribe('fal-ai/flux/inpainting', {
+    input: {
+      image_url: params.imageUrl,
+      mask_url: params.maskUrl,
+      prompt: params.prompt,
+    },
+  })
+  return {
+    imageUrl: (result.data as any)?.images?.[0]?.url || '',
+    requestId: result.requestId,
+    cost: 12,
+  }
 }
 
 export { fal }

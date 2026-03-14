@@ -22,13 +22,14 @@ export const NODE_COLORS: Record<string, string> = {
   systemPrompt: '#8b5cf6',
   videoBrief: '#3b82f6',
   filmStrip: '#f59e0b',
+  imageEdit: '#f43f5e',
 }
 
 // ── Connection rules: which source types can connect to which targets ────────
 export const CONNECTION_RULES: Record<string, string[]> = {
   script: ['voice', 'imageGen', 'videoGen', 'llm', 'textIterator', 'array', 'router'],
   voice: ['videoGen', 'export'],
-  imageGen: ['videoGen', 'llm'],
+  imageGen: ['videoGen', 'llm', 'imageEdit'],
   videoGen: ['caption', 'export'],
   caption: ['export'],
   export: [],
@@ -39,6 +40,7 @@ export const CONNECTION_RULES: Record<string, string[]> = {
   systemPrompt: ['llm', 'script'],
   videoBrief: ['filmStrip'],
   filmStrip: ['export', 'caption', 'array', 'router'],
+  imageEdit: ['videoGen', 'imageGen', 'export'],
 }
 
 export type NodeStatus = 'idle' | 'pending' | 'processing' | 'ready' | 'failed'
@@ -97,6 +99,15 @@ export interface RouterConfig { rules: string[] }
 export interface TextIteratorConfig { batchSize: number }
 export interface SystemPromptConfig { content: string }
 
+// ── Image Edit Nodes ──────────────────────────────
+export interface ImageEditConfig {
+  editType: 'kontext' | 'remove-bg' | 'upscale' | 'inpaint'
+  imageUrl?: string
+  prompt?: string
+  maskUrl?: string
+  scale?: number
+}
+
 // ── CapCut-style nodes ────────────────────────────
 export interface VideoBriefConfig {
   prompt: string;
@@ -139,7 +150,7 @@ export interface FilmStripConfig {
   exportedVideoUrl?: string;
 }
 
-export type AnyNodeConfig = ScriptConfig | VoiceConfig | ImageGenConfig | VideoGenConfig | CaptionConfig | ExportConfig | LLMConfig | ArrayConfig | RouterConfig | TextIteratorConfig | SystemPromptConfig | VideoBriefConfig | FilmStripConfig
+export type AnyNodeConfig = ScriptConfig | VoiceConfig | ImageGenConfig | VideoGenConfig | CaptionConfig | ExportConfig | LLMConfig | ArrayConfig | RouterConfig | TextIteratorConfig | SystemPromptConfig | VideoBriefConfig | FilmStripConfig | ImageEditConfig
 
 export interface NodeData {
   label: string
