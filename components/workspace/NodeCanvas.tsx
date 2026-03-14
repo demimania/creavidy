@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import ReactFlow, {
   Background,
   BackgroundVariant,
@@ -91,6 +91,51 @@ export function NodeCanvas() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null)
   const [panMode, setPanMode] = useState(true)
+
+  // ── Keyboard shortcuts ────────────────────────────────────────────────────
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      const active = document.activeElement
+      // Input/textarea focused ise çalışma
+      if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) return
+
+      // Delete / Backspace → seçili node'ları sil
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        const selected = nodes.filter(n => n.selected)
+        if (selected.length > 0) {
+          _pushHistory()
+          setNodes(nodes.filter(n => !n.selected))
+          setEdges(edges.filter(edge => !selected.find(s => s.id === edge.source || s.id === edge.target)))
+        }
+      }
+
+      // Cmd/Ctrl + D → duplicate seçili node'ları
+      if ((e.metaKey || e.ctrlKey) && e.key === 'd') {
+        e.preventDefault()
+        const selected = nodes.filter(n => n.selected)
+        if (selected.length > 0) {
+          _pushHistory()
+          const duplicates = selected.map(n => ({
+            ...n,
+            id: `${n.id}-copy-${Date.now()}`,
+            position: { x: n.position.x + 40, y: n.position.y + 40 },
+            selected: true,
+          }))
+          setNodes([...nodes.map(n => ({ ...n, selected: false })), ...duplicates])
+        }
+      }
+
+      // Escape → deselect all
+      if (e.key === 'Escape') {
+        setNodes(nodes.map(n => ({ ...n, selected: false })))
+        selectNode(null)
+        setContextMenu(null)
+      }
+    }
+
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [nodes, edges, setNodes, setEdges, selectNode, setContextMenu, _pushHistory])
 
   const onNodesChange: OnNodesChange = useCallback(
     (changes) => setNodes(applyNodeChanges(changes, nodes) as Node<NodeData>[]),
@@ -203,6 +248,13 @@ export function NodeCanvas() {
   }, [selectNode, setContextMenu])
 
   // ── Right-click context menu ─────────────────────────────────────────────
+  // ── Selection change → single vs multi ─────────────────────────────────
+  const onSelectionChange = useCallback(({ nodes: selectedNodes }: { nodes: Node[] }) => {
+    if (selectedNodes.length !== 1) {
+      selectNode(null)
+    }
+  }, [selectNode])
+
   const onPaneContextMenu = useCallback(
     (event: React.MouseEvent) => {
       event.preventDefault()
@@ -238,12 +290,16 @@ export function NodeCanvas() {
         onPaneContextMenu={onPaneContextMenu}
         onInit={(instance) => { reactFlowInstance.current = instance }}
         onNodeDragStop={onNodeDragStop}
+        onSelectionChange={onSelectionChange}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         panOnDrag={panMode}
         selectionOnDrag={!panMode}
         panOnScroll={false}
         selectionMode={'partial' as any}
+        deleteKeyCode="Delete"
+        multiSelectionKeyCode="Shift"
+        selectNodesOnDrag={false}
         fitView
         fitViewOptions={{ padding: 0.2, maxZoom: 0.8 }}
         defaultEdgeOptions={{

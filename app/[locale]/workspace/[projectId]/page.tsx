@@ -8,6 +8,7 @@ import { useSearchParams, useParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { NodeCanvas } from '@/components/workspace/NodeCanvas'
+import { FloatingNodeToolbar } from '@/components/workspace/FloatingNodeToolbar'
 import { NodeDetailPanel } from '@/components/workspace/NodeDetailPanel'
 import { CanvasContextMenu } from '@/components/workspace/CanvasContextMenu'
 import { WorkspaceChatPanel } from '@/components/workspace/WorkspaceChatPanel'
@@ -277,9 +278,10 @@ function WorkspaceContent() {
         {/* Canvas wrapper */}
         <div className="flex-1 relative">
           <NodeCanvas />
+          <FloatingNodeToolbar />
           <CanvasContextMenu />
           <div className="absolute bottom-4 left-4 z-20 px-3 py-1.5 rounded-lg bg-black/40 backdrop-blur-sm border border-white/5">
-            <p className="text-[10px] text-zinc-500">Sağ-tık ile node ekle · Handle'ları bağla</p>
+            <p className="text-[10px] text-zinc-500">Sağ-tık: node ekle · Shift+click: çoklu seçim · Del: sil · ⌘D: kopyala</p>
           </div>
 
           {/* Floating Chat Toggle Button — bottom-left above hint */}
