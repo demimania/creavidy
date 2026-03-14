@@ -121,7 +121,7 @@ const ScriptNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) => 
         <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}40` }}>
           <FileText className="w-3 h-3" style={{ color }} />
         </div>
-        <span className="flex-1 text-[11px] font-semibold text-white">Prompt</span>
+        <span className="flex-1 text-[11px] font-semibold text-white">{data.label || 'Script'}</span>
         {STATUS_ICONS[data.status as keyof typeof STATUS_ICONS]}
         <NodeMenuWrapper nodeId={id} />
       </div>

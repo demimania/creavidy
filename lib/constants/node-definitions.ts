@@ -116,7 +116,7 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     id: 'promptNode', label: 'Prompt', icon: '📄',
     description: 'Metin girişi; Variable desteği; Display: Value/Source modu',
     category: 'text', subcategory: 'input',
-    inputs: [any('Variable')], outputs: [txt('Text')], status: 'active',
+    inputs: [any('Variable')], outputs: [txt('Text')], status: 'soon',
   },
   {
     id: 'promptConcatNode', label: 'Prompt Concatenator', icon: '🔗',
