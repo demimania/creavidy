@@ -1,8 +1,10 @@
 'use client'
 import { useState, useCallback } from 'react'
 import { Handle, Position } from 'reactflow'
-import { Play, Loader2, Film, ChevronDown } from 'lucide-react'
+import { Play, Loader2, Film, ChevronDown, Download } from 'lucide-react'
+import { toast } from 'sonner'
 import type { NodeData } from '@/lib/stores/workspace-store'
+import { useJobPoll } from '@/lib/hooks/use-job-poll'
 
 const VIDEO_MODELS = [
   { id: 'kling-3-std',  label: 'Kling 3.0 Standard', credits: 35, color: '#a78bfa' },
@@ -27,24 +29,83 @@ export function MultiModelVideoNodeContent({ data }: { data: NodeData; selected?
 
   const selectedModel = VIDEO_MODELS.find(m => m.id === model) || VIDEO_MODELS[0]
 
+  const { submit: submitJob, status: jobStatus, outputUrl: jobOutputUrl, error: jobError } = useJobPoll({
+    endpoint: '', // overridden per-submit in mode=queue
+    onCompleted: (r) => {
+      if (r.outputUrl) {
+        setOutputUrl(r.outputUrl)
+        toast.success(`Video hazır · ${selectedModel.credits} kredi`)
+      }
+    },
+    onFailed: (err) => {
+      setError(err)
+      toast.error(err)
+    },
+  })
+
+  const isProcessing = loading || jobStatus === 'pending' || jobStatus === 'processing'
+
   const handleRun = useCallback(async () => {
     if (!prompt.trim()) { setError('Prompt gerekli'); return }
-    setLoading(true); setError(''); setOutputUrl('')
+    setError(''); setOutputUrl('')
+
+    // Always use queue mode for video — avoids serverless timeout
+    setLoading(true)
     try {
       const res = await fetch('/api/generate/video', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model, prompt, duration, aspectRatio }),
+        body: JSON.stringify({ model, prompt, duration, aspectRatio, mode: 'queue' }),
       })
       const d = await res.json()
       if (d.error) throw new Error(d.error)
-      setOutputUrl(d.videoUrl)
+
+      if (d.mode === 'queue' && d.jobId) {
+        // Async: start polling
+        setLoading(false)
+        await submitJob(d.endpoint, {}) // endpoint already submitted, just trigger polling
+        // Actually for queue mode we need to poll differently — use direct polling
+        // since submitJob would re-submit. Let's directly poll jobId.
+        pollJobId(d.jobId, d.endpoint)
+      } else {
+        // Sync fallback
+        setOutputUrl(d.videoUrl)
+        setLoading(false)
+        toast.success(`Video hazır · ${selectedModel.credits} kredi`)
+      }
     } catch (e: any) {
       setError(e.message)
-    } finally {
       setLoading(false)
+      toast.error(e.message)
     }
-  }, [model, prompt, duration, aspectRatio])
+  }, [model, prompt, duration, aspectRatio, selectedModel.credits, submitJob])
+
+  const pollJobId = useCallback((jobId: string, endpoint: string) => {
+    const INTERVAL = 3000
+    const MAX_WAIT = 5 * 60 * 1000
+    const start = Date.now()
+
+    const tick = async () => {
+      if (Date.now() - start > MAX_WAIT) {
+        setError('Zaman aşımı'); return
+      }
+      try {
+        const res = await fetch(`/api/jobs/${jobId}?endpoint=${encodeURIComponent(endpoint)}`)
+        const data = await res.json()
+        if (data.status === 'completed') {
+          setOutputUrl(data.outputUrl || '')
+          toast.success(`Video hazır · ${selectedModel.credits} kredi`)
+        } else if (data.status === 'failed') {
+          setError(data.error || 'İşlem başarısız')
+        } else {
+          setTimeout(tick, INTERVAL)
+        }
+      } catch {
+        setTimeout(tick, INTERVAL)
+      }
+    }
+    setTimeout(tick, INTERVAL)
+  }, [selectedModel.credits])
 
   return (
     <div className="relative bg-[#0F051D]/95 rounded-xl p-3 min-w-[240px] max-w-[280px]" style={{ border: `1px solid ${selectedModel.color}40`, borderLeft: `3px solid ${selectedModel.color}CC`, boxShadow: `0 0 16px ${selectedModel.color}18` }}>
@@ -135,23 +196,33 @@ export function MultiModelVideoNodeContent({ data }: { data: NodeData; selected?
       {/* Run button */}
       <button
         onClick={handleRun}
-        disabled={loading}
-        className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all"
+        disabled={isProcessing}
+        className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all disabled:opacity-50"
         style={{
-          background: loading ? 'rgba(255,255,255,0.04)' : `${selectedModel.color}18`,
-          color: loading ? '#555' : selectedModel.color,
+          background: isProcessing ? 'rgba(255,255,255,0.04)' : `${selectedModel.color}18`,
+          color: isProcessing ? '#888' : selectedModel.color,
           border: `1px solid ${selectedModel.color}28`,
         }}
       >
-        {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
-        {loading ? 'Generating...' : `Generate · ${selectedModel.credits}cr`}
+        {isProcessing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+        {isProcessing
+          ? (jobStatus === 'pending' ? 'Sırada...' : 'Üretiliyor...')
+          : `Üret · ${selectedModel.credits}cr`
+        }
       </button>
 
-      {error && <p className="text-[9px] text-red-400 mt-1.5 text-center">{error}</p>}
+      {(error || jobError) && <p className="text-[9px] text-red-400 mt-1.5 text-center">{error || jobError}</p>}
 
-      {outputUrl && (
-        <div className="mt-2 rounded-lg overflow-hidden border border-white/8">
-          <video src={outputUrl} controls className="w-full max-h-32 object-cover" />
+      {(outputUrl || jobOutputUrl) && (
+        <div className="mt-2 rounded-lg overflow-hidden border border-white/8 relative group">
+          <video src={outputUrl || jobOutputUrl!} controls className="w-full max-h-32 object-cover" />
+          <a
+            href={outputUrl || jobOutputUrl!} download
+            className="absolute top-1 right-1 p-1 rounded bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+            title="İndir"
+          >
+            <Download className="w-3 h-3" />
+          </a>
         </div>
       )}
     </div>

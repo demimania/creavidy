@@ -1,4 +1,6 @@
 // POST /api/generate/video — Generate video via fal.ai
+// Supports `mode: 'queue'` for long-running jobs: returns {jobId} immediately.
+// Client polls GET /api/jobs/[jobId]?endpoint=... for result.
 import { NextRequest, NextResponse } from 'next/server'
 import {
   generateVideo,
@@ -7,9 +9,19 @@ import {
   generateVideoLuma,
   generateVideoMinimax,
   generateVideoWan,
+  FAL_VIDEO_MODELS,
+  fal,
 } from '@/lib/ai/fal-client'
 import { deductCredit } from '@/lib/services/credits'
 import { createClient } from '@/lib/supabase/server'
+
+// Models that are known to take >30s — always use queue
+const LONG_RUNNING_MODELS = new Set([
+  'veo-3', 'veo-3.1', 'sora-2-pro', 'wan-2.6-t2v', 'hunyuan',
+  'luma-dream', 'minimax-hailuo', 'kling-2.0-master',
+  'kling-3.0-standard-t2v', 'kling-3.0-standard-i2v',
+  'kling-3.0-pro-t2v', 'kling-2.5-turbo',
+])
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,8 +30,21 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await req.json()
-    const { model, prompt, duration, resolution, fps, imageUrl, aspectRatio } = body
+    const { model, prompt, duration, resolution, fps, imageUrl, aspectRatio, mode } = body
     if (!prompt) return NextResponse.json({ error: 'Prompt is required' }, { status: 400 })
+
+    // ── QUEUE MODE: submit to fal.ai queue, return jobId immediately ──────────
+    const useQueue = mode === 'queue' || LONG_RUNNING_MODELS.has(model)
+    if (useQueue) {
+      const endpoint = FAL_VIDEO_MODELS[model] || FAL_VIDEO_MODELS['kling-3.0-standard-t2v']
+      const input: Record<string, unknown> = { prompt, duration: duration || 5 }
+      if (imageUrl) input.image_url = imageUrl
+      if (aspectRatio) input.aspect_ratio = aspectRatio
+
+      const { request_id: requestId } = await fal.queue.submit(endpoint, { input: input as any })
+      return NextResponse.json({ mode: 'queue', jobId: requestId, endpoint, status: 'pending' })
+    }
+    // ── SYNC MODE (short operations) ─────────────────────────────────────────
 
     let videoUrl: string
     let requestId: string
