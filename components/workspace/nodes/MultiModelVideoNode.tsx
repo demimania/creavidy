@@ -47,7 +47,7 @@ export function MultiModelVideoNodeContent({ data }: { data: NodeData; selected?
   }, [model, prompt, duration, aspectRatio])
 
   return (
-    <div className="relative bg-[#0F051D]/95 border border-white/10 rounded-xl p-3 min-w-[240px] max-w-[280px]">
+    <div className="relative bg-[#0F051D]/95 rounded-xl p-3 min-w-[240px] max-w-[280px]" style={{ border: `1px solid ${selectedModel.color}40`, borderLeft: `3px solid ${selectedModel.color}CC`, boxShadow: `0 0 16px ${selectedModel.color}18` }}>
       <Handle type="target" position={Position.Left} id="text-in" style={{ background: '#a78bfa', top: '30%' }} />
       <Handle type="target" position={Position.Left} id="image-in" style={{ background: '#FFE744', top: '60%' }} />
       <Handle type="source" position={Position.Right} id="video-out" style={{ background: '#22d3ee' }} />

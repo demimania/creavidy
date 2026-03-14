@@ -93,11 +93,11 @@ export const ImageEditNodeContent = memo(function ImageEditNodeContent({ id, dat
   }, [id, config, prompt, editType, meta.label, getUpstreamImage, updateNodeStatus, updateNodeConfig, updateNodeOutput, updateNodeError])
 
   return (
-    <div className="min-w-[220px] rounded-xl border border-white/10 bg-[#1a0d2e]/90 backdrop-blur-sm overflow-hidden">
+    <div className="min-w-[220px] rounded-xl bg-[#1a0d2e]/90 backdrop-blur-sm overflow-hidden" style={{ border: `1px solid ${meta.color}40`, borderLeft: `3px solid ${meta.color}CC`, boxShadow: `0 0 16px ${meta.color}18` }}>
       {/* Header */}
       <div
         className="flex items-center gap-2 px-3 py-2 border-b border-white/10"
-        style={{ background: `${meta.color}18` }}
+        style={{ background: `linear-gradient(135deg, ${meta.color}35 0%, ${meta.color}15 100%)` }}
       >
         <span style={{ color: meta.color }}>{meta.icon}</span>
         <span className="text-xs font-semibold text-zinc-200 flex-1">{data.label || meta.label}</span>

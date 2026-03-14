@@ -109,11 +109,11 @@ const ScriptNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) => 
   return (
     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
       className={`relative w-[280px] rounded-xl border transition-all ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'} ${highlightClasses(isHighlighted)}`}
-      style={{ borderColor: selected ? color : isHighlighted ? '#a78bfa' : 'rgba(255,255,255,0.10)', boxShadow: selected ? `0 0 25px ${color}20` : isHighlighted ? '0 0 40px rgba(167,139,250,0.3)' : undefined }}>
+      style={{ border: `1px solid ${selected ? color : isHighlighted ? '#a78bfa' : color + '40'}`, borderLeft: `3px solid ${selected ? color : isHighlighted ? '#a78bfa' : color + 'CC'}`, boxShadow: selected ? `0 0 30px ${color}35` : isHighlighted ? '0 0 40px rgba(167,139,250,0.3)' : `0 0 16px ${color}18` }}>
 
       {/* Header */}
-      <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `${color}10` }}>
-        <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}25` }}>
+      <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `linear-gradient(135deg, ${color}38 0%, ${color}18 100%)` }}>
+        <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}40` }}>
           <FileText className="w-3 h-3" style={{ color }} />
         </div>
         <span className="flex-1 text-[11px] font-semibold text-white">Prompt</span>
@@ -194,7 +194,7 @@ const VoiceNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) => {
   return (
     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
       className={`relative w-[260px] rounded-xl border transition-all ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'} ${highlightClasses(isHighlighted)}`}
-      style={{ borderColor: selected ? color : isHighlighted ? '#a78bfa' : 'rgba(255,255,255,0.10)', boxShadow: selected ? `0 0 25px ${color}20` : isHighlighted ? '0 0 40px rgba(167,139,250,0.3)' : undefined }}>
+      style={{ border: `1px solid ${selected ? color : isHighlighted ? '#a78bfa' : color + '40'}`, borderLeft: `3px solid ${selected ? color : isHighlighted ? '#a78bfa' : color + 'CC'}`, boxShadow: selected ? `0 0 30px ${color}35` : isHighlighted ? '0 0 40px rgba(167,139,250,0.3)' : `0 0 16px ${color}18` }}>
 
       <Handle type="target" position={Position.Left} id="voice-in"
         className="!w-3 !h-3 !rounded-full !border-2 !border-[#0F051D]" style={{ backgroundColor: color }} />
@@ -202,8 +202,8 @@ const VoiceNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) => {
         <span className="text-[9px] font-medium leading-none" style={{ color }}>Script</span>
       </div>
 
-      <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `${color}10` }}>
-        <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}25` }}>
+      <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `linear-gradient(135deg, ${color}38 0%, ${color}18 100%)` }}>
+        <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}40` }}>
           <Mic className="w-3 h-3" style={{ color }} />
         </div>
         <span className="flex-1 text-[11px] font-semibold text-white">{data.label}</span>
@@ -300,7 +300,7 @@ const ImageGenNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) =
   return (
     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
       className={`relative w-[280px] rounded-xl border transition-all ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'} ${highlightClasses(isHighlighted)}`}
-      style={{ borderColor: selected ? color : isHighlighted ? '#a78bfa' : 'rgba(255,255,255,0.10)', boxShadow: selected ? `0 0 25px ${color}20` : isHighlighted ? '0 0 40px rgba(167,139,250,0.3)' : undefined }}>
+      style={{ border: `1px solid ${selected ? color : isHighlighted ? '#a78bfa' : color + '40'}`, borderLeft: `3px solid ${selected ? color : isHighlighted ? '#a78bfa' : color + 'CC'}`, boxShadow: selected ? `0 0 30px ${color}35` : isHighlighted ? '0 0 40px rgba(167,139,250,0.3)' : `0 0 16px ${color}18` }}>
 
       {/* Main prompt handle */}
       <Handle type="target" position={Position.Left} id="img-in-prompt"
@@ -318,8 +318,8 @@ const ImageGenNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) =
         </div>
       ))}
 
-      <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `${color}10` }}>
-        <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}25` }}>
+      <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `linear-gradient(135deg, ${color}38 0%, ${color}18 100%)` }}>
+        <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}40` }}>
           <Paintbrush className="w-3 h-3" style={{ color }} />
         </div>
         <span className="flex-1 text-[11px] font-semibold text-white truncate">{IMAGE_MODEL_OPTIONS.find(m => m.value === imgConfig.model)?.label || data.label}</span>
@@ -444,7 +444,7 @@ const VideoGenNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) =
   return (
     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
       className={`relative w-[280px] rounded-xl border transition-all ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'}`}
-      style={{ borderColor: selected ? color : 'rgba(255,255,255,0.10)', boxShadow: selected ? `0 0 25px ${color}20` : undefined }}>
+      style={{ border: `1px solid ${selected ? color : color + '40'}`, borderLeft: `3px solid ${selected ? color : color + 'CC'}`, boxShadow: selected ? `0 0 30px ${color}35` : `0 0 16px ${color}18` }}>
 
       {/* Multiple input handles — Prompt + Image + Voice */}
       <Handle type="target" position={Position.Left} id="vid-in-prompt"
@@ -465,8 +465,8 @@ const VideoGenNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) =
         <span className="text-[9px] font-medium leading-none text-[#a78bfa]">Voice</span>
       </div>
 
-      <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `${color}10` }}>
-        <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}25` }}>
+      <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `linear-gradient(135deg, ${color}38 0%, ${color}18 100%)` }}>
+        <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}40` }}>
           <Film className="w-3 h-3" style={{ color }} />
         </div>
         <span className="flex-1 text-[11px] font-semibold text-white truncate">{VIDEO_MODEL_OPTIONS.find(m => m.value === vidConfig.model)?.label || data.label}</span>
@@ -553,7 +553,7 @@ const CaptionNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) =>
   return (
     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
       className={`relative w-[240px] rounded-xl border transition-all ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'}`}
-      style={{ borderColor: selected ? color : 'rgba(255,255,255,0.10)', boxShadow: selected ? `0 0 25px ${color}20` : undefined }}>
+      style={{ border: `1px solid ${selected ? color : color + '40'}`, borderLeft: `3px solid ${selected ? color : color + 'CC'}`, boxShadow: selected ? `0 0 30px ${color}35` : `0 0 16px ${color}18` }}>
 
       <Handle type="target" position={Position.Left} id="cap-in"
         className="!w-3 !h-3 !rounded-full !border-2 !border-[#0F051D]" style={{ backgroundColor: color }} />
@@ -561,8 +561,8 @@ const CaptionNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) =>
         <span className="text-[9px] font-medium leading-none" style={{ color }}>Video</span>
       </div>
 
-      <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `${color}10` }}>
-        <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}25` }}>
+      <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `linear-gradient(135deg, ${color}38 0%, ${color}18 100%)` }}>
+        <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}40` }}>
           <Subtitles className="w-3 h-3" style={{ color }} />
         </div>
         <span className="flex-1 text-[11px] font-semibold text-white">{data.label}</span>
@@ -618,7 +618,7 @@ const ExportNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) => 
   return (
     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
       className={`relative w-[240px] rounded-xl border transition-all ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'}`}
-      style={{ borderColor: selected ? color : 'rgba(255,255,255,0.10)', boxShadow: selected ? `0 0 25px ${color}20` : undefined }}>
+      style={{ border: `1px solid ${selected ? color : color + '40'}`, borderLeft: `3px solid ${selected ? color : color + 'CC'}`, boxShadow: selected ? `0 0 30px ${color}35` : `0 0 16px ${color}18` }}>
 
       <Handle type="target" position={Position.Left} id="export-in"
         className="!w-3 !h-3 !rounded-full !border-2 !border-[#0F051D]" style={{ backgroundColor: color }} />
@@ -627,8 +627,8 @@ const ExportNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) => 
         <span className="text-[9px] font-medium leading-none" style={{ color }}>Video</span>
       </div>
 
-      <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `${color}10` }}>
-        <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}25` }}>
+      <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `linear-gradient(135deg, ${color}38 0%, ${color}18 100%)` }}>
+        <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}40` }}>
           <Download className="w-3 h-3" style={{ color }} />
         </div>
         <span className="flex-1 text-[11px] font-semibold text-white">{data.label}</span>
@@ -688,7 +688,7 @@ const GenericLogicalNode = ({ data, selected, icon: Icon, color, inputs, outputs
   return (
     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
       className={`relative min-w-[200px] rounded-xl border transition-all ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'}`}
-      style={{ borderColor: selected ? color : 'rgba(255,255,255,0.10)', boxShadow: selected ? `0 0 25px ${color}20` : undefined }}>
+      style={{ border: `1px solid ${selected ? color : color + '40'}`, borderLeft: `3px solid ${selected ? color : color + 'CC'}`, boxShadow: selected ? `0 0 30px ${color}35` : `0 0 16px ${color}18` }}>
       
       {inputs.map((inp: any, i: number) => (
         <div key={inp.id} className="absolute left-0 pr-2 flex flex-col items-end pointer-events-none" style={{ top: `${(i+1)*100/(inputs.length+1)}%`, transform: 'translateX(calc(-100% - 8px)) translateY(-50%)' }}>
@@ -697,8 +697,8 @@ const GenericLogicalNode = ({ data, selected, icon: Icon, color, inputs, outputs
         </div>
       ))}
 
-      <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `${color}10` }}>
-        <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}25` }}>
+      <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `linear-gradient(135deg, ${color}38 0%, ${color}18 100%)` }}>
+        <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}40` }}>
           <Icon className="w-3 h-3" style={{ color }} />
         </div>
         <span className="flex-1 text-[11px] font-semibold text-white">{data.label}</span>
@@ -740,7 +740,7 @@ const ArrayNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) => {
   return (
     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
       className={`relative w-[280px] rounded-xl border transition-all ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'}`}
-      style={{ borderColor: selected ? color : 'rgba(255,255,255,0.10)', boxShadow: selected ? `0 0 25px ${color}20` : undefined }}>
+      style={{ border: `1px solid ${selected ? color : color + '40'}`, borderLeft: `3px solid ${selected ? color : color + 'CC'}`, boxShadow: selected ? `0 0 30px ${color}35` : `0 0 16px ${color}18` }}>
 
       <Handle type="target" position={Position.Left} id="arr-in"
         className="!w-3 !h-3 !rounded-full !border-2 !border-[#0F051D]" style={{ backgroundColor: color }} />
@@ -748,8 +748,8 @@ const ArrayNodeContent = memo(({ id, data, selected }: NodeProps<NodeData>) => {
         <span className="text-[9px] font-medium" style={{ color }}>Data</span>
       </div>
 
-      <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `${color}10` }}>
-        <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}25` }}>
+      <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `linear-gradient(135deg, ${color}38 0%, ${color}18 100%)` }}>
+        <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}40` }}>
           <ListTree className="w-3 h-3" style={{ color }} />
         </div>
         <span className="flex-1 text-[11px] font-semibold text-white">{data.label}</span>
@@ -809,10 +809,10 @@ const SystemPromptNodeContent = memo(({ id, data, selected }: NodeProps<NodeData
   return (
     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
       className={`relative w-[280px] rounded-xl border transition-all ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'}`}
-      style={{ borderColor: selected ? color : 'rgba(255,255,255,0.10)', boxShadow: selected ? `0 0 25px ${color}20` : undefined }}>
+      style={{ border: `1px solid ${selected ? color : color + '40'}`, borderLeft: `3px solid ${selected ? color : color + 'CC'}`, boxShadow: selected ? `0 0 30px ${color}35` : `0 0 16px ${color}18` }}>
 
-      <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `${color}10` }}>
-        <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}25` }}>
+      <div className="flex items-center gap-2 px-3 py-2 rounded-t-xl" style={{ background: `linear-gradient(135deg, ${color}38 0%, ${color}18 100%)` }}>
+        <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: `${color}40` }}>
           <Settings className="w-3 h-3" style={{ color }} />
         </div>
         <span className="flex-1 text-[11px] font-semibold text-white">System Prompt</span>

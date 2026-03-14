@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect, useRef, useCallback } from 'react'
 import { ReactFlowProvider } from 'reactflow'
-import { ArrowLeft, Save, Undo2, Redo2, Download, Play, Coins, Pencil, Loader2, MessageSquare, Settings2, PanelRightClose, X, Minus, Cloud, CloudOff, Check } from 'lucide-react'
+import { ArrowLeft, Download, Coins, Pencil, Loader2, MessageSquare, Settings2, PanelRightClose, X, Minus, Cloud, Check, LayoutDashboard } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams, useParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -205,8 +205,11 @@ function WorkspaceContent() {
       {/* Top Bar */}
       <div className="flex items-center justify-between h-12 px-4 border-b border-white/10 bg-black/30 backdrop-blur-xl flex-shrink-0 z-50">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="text-zinc-400 hover:text-white transition-colors">
+          <Link href="/" className="text-zinc-400 hover:text-white transition-colors" title="Ana Sayfa">
             <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <Link href="/dashboard" className="text-zinc-500 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5" title="Dashboard">
+            <LayoutDashboard className="w-3.5 h-3.5" />
           </Link>
 
           {isEditingTitle ? (

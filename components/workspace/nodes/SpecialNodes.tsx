@@ -30,7 +30,7 @@ export function ThreeDNodeContent({ data }: { data: NodeData; selected?: boolean
   }, [model, prompt, imageUrl])
 
   return (
-    <div className="bg-[#0F051D]/95 border border-white/10 rounded-xl p-3 min-w-[220px] max-w-[260px]">
+    <div className="bg-[#0F051D]/95 rounded-xl p-3 min-w-[220px] max-w-[260px]" style={{ border: '1px solid #34d39940', borderLeft: '3px solid #34d399CC', boxShadow: '0 0 16px #34d39918' }}>
       <Handle type="target" position={Position.Left} id="image-in" style={{ background: '#FFE744', top: '40%' }} />
       <Handle type="target" position={Position.Left} id="text-in" style={{ background: '#a78bfa', top: '60%' }} />
       <Handle type="source" position={Position.Right} id="3d-out" style={{ background: '#34d399' }} />
@@ -109,7 +109,7 @@ export function AudioGenNodeContent({ data }: { data: NodeData; selected?: boole
   }, [type, prompt, style, duration])
 
   return (
-    <div className="bg-[#0F051D]/95 border border-white/10 rounded-xl p-3 min-w-[220px] max-w-[260px]">
+    <div className="bg-[#0F051D]/95 rounded-xl p-3 min-w-[220px] max-w-[260px]" style={{ border: '1px solid #f472b640', borderLeft: '3px solid #f472b6CC', boxShadow: '0 0 16px #f472b618' }}>
       <Handle type="target" position={Position.Left} id="text-in" style={{ background: '#a78bfa' }} />
       <Handle type="source" position={Position.Right} id="audio-out" style={{ background: '#f472b6' }} />
 
@@ -196,7 +196,7 @@ export function VoiceCloneNodeContent({ data }: { data: NodeData; selected?: boo
   }, [provider, text, referenceAudioUrl, voiceId])
 
   return (
-    <div className="bg-[#0F051D]/95 border border-white/10 rounded-xl p-3 min-w-[220px] max-w-[260px]">
+    <div className="bg-[#0F051D]/95 rounded-xl p-3 min-w-[220px] max-w-[260px]" style={{ border: '1px solid #fb923c40', borderLeft: '3px solid #fb923cCC', boxShadow: '0 0 16px #fb923c18' }}>
       <Handle type="target" position={Position.Left} id="audio-in" style={{ background: '#f472b6', top: '35%' }} />
       <Handle type="target" position={Position.Left} id="text-in" style={{ background: '#a78bfa', top: '65%' }} />
       <Handle type="source" position={Position.Right} id="audio-out" style={{ background: '#f472b6' }} />

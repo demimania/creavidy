@@ -45,7 +45,7 @@ export function VideoEditNodeContent({ data }: { data: NodeData; selected?: bool
   }, [videoUrl, audioUrl, prompt, meta.endpoint])
 
   return (
-    <div className="relative bg-[#0F051D]/95 border border-white/10 rounded-xl p-3 min-w-[220px] max-w-[260px]">
+    <div className="relative bg-[#0F051D]/95 rounded-xl p-3 min-w-[220px] max-w-[260px]" style={{ border: `1px solid ${meta.color}40`, borderLeft: `3px solid ${meta.color}CC`, boxShadow: `0 0 16px ${meta.color}18` }}>
       <Handle type="target" position={Position.Left} id="video-in" style={{ background: '#22d3ee', top: '35%' }} />
       {editType === 'lipsync' && (
         <Handle type="target" position={Position.Left} id="audio-in" style={{ background: '#f472b6', top: '65%' }} />
@@ -56,7 +56,7 @@ export function VideoEditNodeContent({ data }: { data: NodeData; selected?: bool
       <div className="flex items-center gap-2 mb-3">
         <div
           className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-          style={{ background: `${meta.color}20` }}
+          style={{ background: `linear-gradient(135deg, ${meta.color}35 0%, ${meta.color}15 100%)` }}
         >
           <Icon className="w-3.5 h-3.5" style={{ color: meta.color }} />
         </div>

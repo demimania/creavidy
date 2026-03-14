@@ -545,11 +545,11 @@ export const VideoBriefNodeContent = memo(({ id, data, selected }: NodeProps<Nod
     <>
       <motion.div ref={setNodeRefs} initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         className={`relative w-[340px] rounded-2xl border transition-all bg-[#0F051D] shadow-2xl z-[1000] ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'} ${isHighlighted ? 'animate-pulse ring-2 ring-[#a78bfa] ring-offset-2 ring-offset-[#0F051D]' : ''}`}
-        style={{ borderColor: selected ? color : isHighlighted ? '#a78bfa' : 'rgba(255,255,255,0.15)', boxShadow: selected ? `0 0 30px ${color}30` : isHighlighted ? '0 0 40px rgba(167,139,250,0.3)' : undefined }}>
+        style={{ border: `1px solid ${selected ? color : isHighlighted ? '#a78bfa' : color + '45'}`, borderLeft: `3px solid ${selected ? color : isHighlighted ? '#a78bfa' : color + 'CC'}`, boxShadow: selected ? `0 0 30px ${color}35` : isHighlighted ? '0 0 40px rgba(167,139,250,0.3)' : `0 0 16px ${color}18` }}>
 
         {/* Header */}
-        <div className="flex items-center gap-2 px-4 py-3 rounded-t-2xl bg-white/[0.02] border-b border-white/10">
-          <FileText className="w-4 h-4 text-zinc-400" />
+        <div className="flex items-center gap-2 px-4 py-3 rounded-t-2xl border-b border-white/10" style={{ background: `linear-gradient(135deg, ${color}35 0%, ${color}12 100%)` }}>
+          <FileText className="w-4 h-4" style={{ color }} />
           <span className="flex-1 text-xs font-semibold text-white">Video brief 1</span>
           <button className="text-zinc-500 hover:text-white transition-colors"><Settings2 className="w-4 h-4" /></button>
         </div>
@@ -1469,7 +1469,7 @@ export const FilmStripNodeContent = memo(({ id, data, selected }: NodeProps<Node
 
     <motion.div initial={{ scale: 0.95, opacity: 0, x: -20 }} animate={{ scale: 1, opacity: 1, x: 0 }} transition={{ type: "spring", stiffness: 300, damping: 25 }}
       className={`relative flex w-[800px] h-[500px] rounded-2xl border transition-all bg-[#0F051D] shadow-2xl ${selected ? 'ring-2 ring-offset-2 ring-offset-[#0F051D]' : 'hover:shadow-lg'}`}
-      style={{ borderColor: selected ? color : 'rgba(255,255,255,0.15)', boxShadow: selected ? `0 0 30px ${color}30` : undefined }}>
+      style={{ border: `1px solid ${selected ? color : color + '45'}`, borderLeft: `3px solid ${selected ? color : color + 'CC'}`, boxShadow: selected ? `0 0 30px ${color}35` : `0 0 16px ${color}18` }}>
 
       {/* Target Handle */}
       <Handle type="target" position={Position.Left} id="film-in"
@@ -1487,8 +1487,8 @@ export const FilmStripNodeContent = memo(({ id, data, selected }: NodeProps<Node
 
       {/* Left Pane: Scenes List */}
       <div className="w-[350px] flex flex-col border-r border-white/10 bg-white/[0.02] rounded-l-2xl overflow-hidden">
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-[#0F051D]">
-          <Film className="w-4 h-4 text-zinc-400" />
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10" style={{ background: `linear-gradient(135deg, ${color}35 0%, ${color}12 100%)` }}>
+          <Film className="w-4 h-4" style={{ color }} />
           <span className="text-xs font-semibold text-white">{data.label || 'Film Strip'}</span>
         </div>
 
