@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { ChatMessage, type ChatMessageData } from './ChatMessage'
 import { ChatInput, type SuggestedAction } from './ChatInput'
-import { Bot } from 'lucide-react'
+import { Bot, Sparkles } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { PipelineState } from '@/lib/hooks/use-orchestrate-pipeline'
 
@@ -234,36 +234,63 @@ export function ChatPanel({
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#080112]">
+    <div className="flex flex-col h-full" style={{ background: '#08011a' }}>
 
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-white/[0.06] flex-shrink-0">
-        <div className="w-6 h-6 rounded-lg bg-white/[0.06] flex items-center justify-center">
-          <Bot className="w-3.5 h-3.5 text-white/40" />
+      <div className="relative flex items-center gap-3 px-4 py-3.5 border-b border-[#7c3aed]/20 flex-shrink-0 overflow-hidden">
+        {/* Ambient gradient */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.18) 0%, rgba(99,102,241,0.08) 50%, transparent 100%)' }} />
+
+        {/* Glow blob */}
+        <div className="absolute -top-4 -left-4 w-24 h-24 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%)', filter: 'blur(12px)' }} />
+
+        {/* Bot icon with glow */}
+        <div className="relative w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{
+            background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
+            boxShadow: '0 0 20px rgba(124,58,237,0.5), 0 0 40px rgba(124,58,237,0.2)',
+          }}>
+          <Bot className="w-4 h-4 text-white" />
+          {/* Status dot */}
+          <span className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#08011a] transition-colors
+            ${isLoading ? 'bg-[#facc15] animate-pulse' : 'bg-[#4ade80]'}`} />
         </div>
-        <span className="flex-1 text-[12px] font-medium text-white/60 tracking-tight">
-          AI Video Director
-        </span>
-        <div className="flex items-center gap-1.5">
-          <span className={`w-1 h-1 rounded-full transition-colors ${isLoading ? 'bg-[#a78bfa]/60 animate-pulse' : 'bg-white/15'}`} />
-          <span className="text-[10px] text-zinc-700">GPT-4o</span>
+
+        <div className="flex-1 relative">
+          <p className="text-[13px] font-semibold text-white leading-tight">AI Video Director</p>
+          <p className="text-[10px] leading-tight" style={{ color: 'rgba(167,139,250,0.7)' }}>
+            {isLoading ? 'Thinking…' : 'Powered by GPT-4o'}
+          </p>
+        </div>
+
+        {/* Status badge */}
+        <div className="relative flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+          style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.25)' }}>
+          <Sparkles className="w-2.5 h-2.5" style={{ color: '#a78bfa' }} />
+          <span className="text-[9px] font-semibold tracking-wide" style={{ color: '#a78bfa' }}>
+            {isLoading ? 'LIVE' : 'READY'}
+          </span>
         </div>
       </div>
 
       {/* ── Pipeline progress ───────────────────────────────── */}
       {pipelineState?.isRunning && (
-        <div className="px-4 py-2 border-b border-white/[0.04] flex-shrink-0">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] text-zinc-500">
+        <div className="px-4 py-2.5 border-b flex-shrink-0"
+          style={{ borderColor: 'rgba(124,58,237,0.15)', background: 'rgba(124,58,237,0.04)' }}>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-medium" style={{ color: '#a78bfa' }}>
               {pipelineState.currentStep?.replace(/_/g, ' ') || 'Starting…'}
             </span>
-            <span className="text-[10px] text-zinc-700">
+            <span className="text-[10px]" style={{ color: 'rgba(167,139,250,0.4)' }}>
               {pipelineState.completedSteps}/{pipelineState.totalSteps}
             </span>
           </div>
-          <div className="h-[1px] bg-white/[0.05] rounded-full overflow-hidden">
+          <div className="h-[2px] rounded-full overflow-hidden" style={{ background: 'rgba(124,58,237,0.15)' }}>
             <motion.div
-              className="h-full bg-white/20 rounded-full"
+              className="h-full rounded-full"
+              style={{ background: 'linear-gradient(90deg, #7c3aed, #a78bfa, #06d6a0)' }}
               initial={{ width: 0 }}
               animate={{ width: `${pipelineState.progress}%` }}
               transition={{ duration: 0.4, ease: 'easeOut' }}
@@ -292,12 +319,13 @@ export function ChatPanel({
               animate={{ opacity: 1 }}
               className="flex items-center gap-1 pl-1 pt-1"
             >
-              {[0, 0.12, 0.24].map((delay, i) => (
+              {[0, 0.14, 0.28].map((delay, i) => (
                 <motion.span
                   key={i}
-                  className="w-1 h-1 rounded-full bg-white/20"
-                  animate={{ opacity: [0.3, 1, 0.3] }}
-                  transition={{ duration: 0.8, repeat: Infinity, delay }}
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ background: '#7c3aed' }}
+                  animate={{ opacity: [0.25, 1, 0.25], scale: [0.8, 1.1, 0.8] }}
+                  transition={{ duration: 0.9, repeat: Infinity, delay }}
                 />
               ))}
             </motion.div>

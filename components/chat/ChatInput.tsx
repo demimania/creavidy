@@ -67,10 +67,20 @@ export function ChatInput({
               key={i}
               onClick={() => onSend(action.prompt)}
               disabled={disabled}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px]
-                bg-white/[0.03] border border-white/[0.07] text-zinc-600
-                hover:text-white/60 hover:border-white/12 hover:bg-white/[0.06]
-                transition-all disabled:opacity-30"
+              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] transition-all disabled:opacity-30"
+              style={{
+                background: 'rgba(124,58,237,0.08)',
+                border: '1px solid rgba(124,58,237,0.18)',
+                color: 'rgba(167,139,250,0.7)',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'rgba(124,58,237,0.18)'
+                e.currentTarget.style.color = '#a78bfa'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'rgba(124,58,237,0.08)'
+                e.currentTarget.style.color = 'rgba(167,139,250,0.7)'
+              }}
             >
               {action.icon && <span className="text-[9px]">{action.icon}</span>}
               {action.label}
@@ -80,8 +90,10 @@ export function ChatInput({
       )}
 
       {/* Input row */}
-      <div className="flex items-end gap-2 bg-white/[0.04] border border-white/[0.07]
-        rounded-xl px-3 py-2.5 focus-within:border-white/12 transition-colors">
+      <div className="flex items-end gap-2 rounded-xl px-3 py-2.5 transition-colors"
+        style={{ background: 'rgba(124,58,237,0.07)', border: '1px solid rgba(124,58,237,0.18)' }}
+        onFocus={() => {}} /* focus-within handled via CSS below */
+      >
         <textarea
           ref={textareaRef}
           value={value}
@@ -91,9 +103,8 @@ export function ChatInput({
           placeholder={placeholder}
           disabled={disabled}
           rows={1}
-          className="flex-1 bg-transparent text-[12px] text-white/75 placeholder:text-zinc-700
-            leading-relaxed resize-none focus:outline-none min-h-[20px] max-h-[140px]
-            disabled:opacity-40"
+          className="flex-1 bg-transparent text-[12px] leading-relaxed resize-none focus:outline-none min-h-[20px] max-h-[140px] disabled:opacity-40 placeholder:text-[#7c3aed]/35"
+          style={{ color: 'rgba(255,255,255,0.8)', caretColor: '#a78bfa' }}
         />
 
         <AnimatePresence mode="wait">
@@ -104,9 +115,8 @@ export function ChatInput({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
               onClick={onStop}
-              className="flex-shrink-0 w-6 h-6 rounded-lg bg-white/[0.06] border border-white/10
-                text-white/30 hover:text-white/60 hover:bg-white/10
-                flex items-center justify-center transition-colors"
+              className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
+              style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', color: 'rgba(252,165,165,0.8)' }}
             >
               <Square className="w-2.5 h-2.5 fill-current" />
             </motion.button>
@@ -118,14 +128,17 @@ export function ChatInput({
               exit={{ scale: 0.8, opacity: 0 }}
               onClick={handleSend}
               disabled={!hasValue || disabled}
-              className="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center transition-all
-                disabled:opacity-20 disabled:cursor-not-allowed"
-              style={{
-                background: hasValue ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.1)',
+              className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all disabled:opacity-25 disabled:cursor-not-allowed active:scale-95"
+              style={hasValue ? {
+                background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
+                boxShadow: '0 0 14px rgba(124,58,237,0.5)',
+                border: '1px solid rgba(124,58,237,0.5)',
+              } : {
+                background: 'rgba(124,58,237,0.08)',
+                border: '1px solid rgba(124,58,237,0.12)',
               }}
             >
-              <ArrowUp className="w-3 h-3 text-white/60" />
+              <ArrowUp className="w-3 h-3 text-white" />
             </motion.button>
           )}
         </AnimatePresence>

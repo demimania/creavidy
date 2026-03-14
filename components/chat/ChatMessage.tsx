@@ -87,17 +87,23 @@ function CardBadgeBubble({ message, onClick }: { message: ChatMessageData; onCli
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.03]
-        px-3 py-2.5 hover:bg-white/[0.06] hover:border-white/10 transition-all text-left group"
+      className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2.5 transition-all text-left group"
+      style={{
+        background: 'rgba(124,58,237,0.08)',
+        border: '1px solid rgba(124,58,237,0.2)',
+      }}
+      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(124,58,237,0.14)')}
+      onMouseLeave={e => (e.currentTarget.style.background = 'rgba(124,58,237,0.08)')}
     >
-      <div className="w-7 h-7 rounded-lg bg-white/[0.06] flex items-center justify-center flex-shrink-0">
-        <Clapperboard className="w-3.5 h-3.5 text-white/40" />
+      <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+        style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', boxShadow: '0 0 10px rgba(124,58,237,0.3)' }}>
+        <Clapperboard className="w-3.5 h-3.5 text-white" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-medium text-white/70 truncate">{message.card_title || 'Video Brief'}</p>
-        <p className="text-[9px] text-zinc-600 truncate">{message.card_subtitle || 'Click to find on canvas'}</p>
+        <p className="text-[11px] font-medium text-white/80 truncate">{message.card_title || 'Video Brief'}</p>
+        <p className="text-[9px] truncate" style={{ color: 'rgba(167,139,250,0.5)' }}>{message.card_subtitle || 'Click to find on canvas'}</p>
       </div>
-      <ChevronRight className="w-3 h-3 text-zinc-700 group-hover:text-white/40 transition-colors flex-shrink-0" />
+      <ChevronRight className="w-3 h-3 flex-shrink-0 transition-colors" style={{ color: 'rgba(124,58,237,0.5)' }} />
     </button>
   )
 }
@@ -171,8 +177,11 @@ export function ChatMessage({ message, isStreaming, onCardBadgeClick }: ChatMess
         className="flex justify-end"
       >
         <div className="max-w-[78%] px-3 py-2 rounded-2xl rounded-tr-sm
-          bg-white/[0.07] border border-white/[0.08]
-          text-[12px] text-white/80 leading-relaxed whitespace-pre-wrap">
+          text-[12px] text-white/85 leading-relaxed whitespace-pre-wrap"
+          style={{
+            background: 'linear-gradient(135deg, rgba(124,58,237,0.22) 0%, rgba(99,102,241,0.14) 100%)',
+            border: '1px solid rgba(124,58,237,0.28)',
+          }}>
           {message.content}
         </div>
       </motion.div>
@@ -187,19 +196,21 @@ export function ChatMessage({ message, isStreaming, onCardBadgeClick }: ChatMess
       transition={{ duration: 0.25 }}
       className="group"
     >
-      <div className="text-[12px] text-zinc-400 leading-relaxed whitespace-pre-wrap">
+      <div className="text-[12px] leading-relaxed whitespace-pre-wrap" style={{ color: 'rgba(214,211,254,0.8)' }}>
         {message.content}
         {isStreaming && (
-          <span className="inline-block ml-0.5 w-1.5 h-3.5 bg-white/20 rounded-sm animate-pulse align-middle" />
+          <span className="inline-block ml-0.5 w-1.5 h-3.5 rounded-sm animate-pulse align-middle"
+            style={{ background: '#7c3aed' }} />
         )}
       </div>
 
       {!isUser && !isStreaming && message.content && (
         <button
           onClick={handleCopy}
-          className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-[9px] text-zinc-700 hover:text-zinc-500"
+          className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-[9px] hover:text-[#a78bfa]"
+          style={{ color: 'rgba(124,58,237,0.4)' }}
         >
-          {copied ? <Check className="w-2.5 h-2.5 text-white/30" /> : <Copy className="w-2.5 h-2.5" />}
+          {copied ? <Check className="w-2.5 h-2.5" /> : <Copy className="w-2.5 h-2.5" />}
           {copied ? 'Copied' : 'Copy'}
         </button>
       )}
