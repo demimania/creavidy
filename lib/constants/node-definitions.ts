@@ -223,13 +223,19 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     id: 'textIteratorNode', label: 'Text Iterator', icon: '🔁',
     description: 'Metin listesini ayırıcıya göre bölerek döngüyle işle',
     category: 'iterators', subcategory: 'loop',
-    inputs: [txtR('Text')], outputs: [txt('Item')], status: 'active',
+    inputs: [txtR('Text')], outputs: [txt('Item')], status: 'active', isNew: true,
   },
   {
     id: 'imageIteratorNode', label: 'Image Iterator', icon: '🖼️',
-    description: 'Görsel seti üzerinde tek tek döngü',
+    description: 'Prompt listesinden paralel/sıralı N görsel üretir',
     category: 'iterators', subcategory: 'loop',
-    inputs: [imgR('Images')], outputs: [img('Image')], status: 'soon',
+    inputs: [txt('Prompts')], outputs: [img('Images')], status: 'active', isNew: true,
+  },
+  {
+    id: 'taskManagerNode', label: 'Task Manager', icon: '✅',
+    description: 'Pipeline görevlerini listeler, iptal/yeniden çalıştır',
+    category: 'iterators', subcategory: 'loop',
+    inputs: [], outputs: [], status: 'active', isNew: true,
   },
   {
     id: 'videoIteratorNode', label: 'Video Iterator', icon: '🎬',

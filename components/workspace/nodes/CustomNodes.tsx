@@ -14,6 +14,7 @@ import { ImageEditNodeContent, SoonNodeContent } from './ImageEditNodes'
 import { LipSyncNodeContent, VideoToVideoNodeContent, VideoUpscaleNodeContent, VideoEnhanceNodeContent } from './VideoEditNodes'
 import { SetVariableNodeContent, GetVariableNodeContent, TextFormatterNodeContent } from './VariableNodes'
 import { PromptVariableEditor } from './PromptVariableEditor'
+import { TextIteratorNodeContent as IteratorTextNodeContent, ImageIteratorNodeContent, TaskManagerNodeContent } from './IteratorNodes'
 
 // Highlight ring class for card badge navigation
 function useNodeHighlight(id: string) {
@@ -875,7 +876,9 @@ export const nodeTypes = {
   llmNode: LLMNodeContent,
   arrayNode: ArrayNodeContent,
   routerNode: RouterNodeContent,
-  textIteratorNode: TextIteratorNodeContent,
+  textIteratorNode: (props: any) => <IteratorTextNodeContent data={props.data} selected={props.selected} />,
+  imageIteratorNode: (props: any) => <ImageIteratorNodeContent data={props.data} selected={props.selected} />,
+  taskManagerNode: (props: any) => <TaskManagerNodeContent data={props.data} selected={props.selected} />,
   systemPromptNode: SystemPromptNodeContent,
   videoBriefNode: VideoBriefNodeContent,
   filmStripNode: FilmStripNodeContent,
@@ -900,7 +903,7 @@ export const nodeTypes = {
   toggleNode: SoonNodeContent,
   listSelectorNode: SoonNodeContent,
   seedNode: SoonNodeContent,
-  imageIteratorNode: SoonNodeContent,
+  // imageIteratorNode handled above
   videoIteratorNode: SoonNodeContent,
   importNode: SoonNodeContent,
   previewNode: SoonNodeContent,

@@ -148,6 +148,15 @@ function buildRequestBody(node: Node<NodeData>, parentOutputs: Record<string, st
       }
     }
 
+    case 'textIterator':
+      return { items: (config as any).items?.split('\n').filter(Boolean) }
+
+    case 'imageIterator':
+      return {
+        prompts: (config as any).prompts?.split('\n').filter(Boolean),
+        model: (config as any).model || 'fal-ai/flux/schnell',
+      }
+
     default:
       return {}
   }

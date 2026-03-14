@@ -18,7 +18,9 @@ export const NODE_COLORS: Record<string, string> = {
   llm: '#f43f5e',
   array: '#3b82f6',
   router: '#f59e0b',
-  textIterator: '#10b981',
+  textIterator: '#a78bfa',
+  imageIterator: '#FFE744',
+  taskManager: '#D1FE17',
   systemPrompt: '#8b5cf6',
   videoBrief: '#3b82f6',
   filmStrip: '#f59e0b',
@@ -100,6 +102,14 @@ export interface RouterConfig { rules: string[] }
 export interface TextIteratorConfig { batchSize: number }
 export interface SystemPromptConfig { content: string }
 
+// ── Iterator Nodes ────────────────────────────────
+export interface IteratorConfig {
+  items?: string
+  prompts?: string
+  model?: string
+  tasks?: Array<{ id: string; label: string; status: string; credits?: number }>
+}
+
 // ── Image Edit Nodes ──────────────────────────────
 export interface ImageEditConfig {
   editType: 'kontext' | 'remove-bg' | 'upscale' | 'inpaint'
@@ -161,7 +171,7 @@ export interface FilmStripConfig {
   exportedVideoUrl?: string;
 }
 
-export type AnyNodeConfig = ScriptConfig | VoiceConfig | ImageGenConfig | VideoGenConfig | CaptionConfig | ExportConfig | LLMConfig | ArrayConfig | RouterConfig | TextIteratorConfig | SystemPromptConfig | VideoBriefConfig | FilmStripConfig | ImageEditConfig | VideoEditConfig
+export type AnyNodeConfig = ScriptConfig | VoiceConfig | ImageGenConfig | VideoGenConfig | CaptionConfig | ExportConfig | LLMConfig | ArrayConfig | RouterConfig | TextIteratorConfig | SystemPromptConfig | VideoBriefConfig | FilmStripConfig | ImageEditConfig | VideoEditConfig | IteratorConfig
 
 export interface NodeData {
   label: string
