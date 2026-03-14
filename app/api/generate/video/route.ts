@@ -14,6 +14,7 @@ import {
 } from '@/lib/ai/fal-client'
 import { deductCredit } from '@/lib/services/credits'
 import { createClient } from '@/lib/supabase/server'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/services/rate-limit'
 
 // Models that are known to take >30s — always use queue
 const LONG_RUNNING_MODELS = new Set([
@@ -28,6 +29,15 @@ export async function POST(req: NextRequest) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    // ── Rate limit ────────────────────────────────────────────────────────────
+    const rl = checkRateLimit(`video:${user.id}`, RATE_LIMITS.videoGen.limit, RATE_LIMITS.videoGen.windowMs)
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: `Çok fazla istek. ${Math.ceil(rl.resetInMs / 1000)}s sonra tekrar dene.` },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(rl.resetInMs / 1000)) } }
+      )
+    }
 
     const body = await req.json()
     const { model, prompt, duration, resolution, fps, imageUrl, aspectRatio, mode } = body

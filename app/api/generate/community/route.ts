@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
 import { deductCredit, checkBalance } from '@/lib/services/credits'
 import { fal } from '@/lib/ai/fal-client'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/services/rate-limit'
 
 // ── Community node → fal.ai endpoint + config ────────────────────────────────
 const COMMUNITY_ENDPOINTS: Record<string, {
@@ -230,6 +231,16 @@ export async function POST(req: NextRequest) {
     )
     const { data } = await supabaseAdmin.auth.getUser(authHeader.slice(7))
     userId = data.user?.id || null
+  }
+
+  // Rate limit
+  const rlKey = userId ? `community:${userId}` : `community:${req.headers.get('x-forwarded-for') || 'anon'}`
+  const rl = checkRateLimit(rlKey, RATE_LIMITS.community.limit, RATE_LIMITS.community.windowMs)
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: `Çok fazla istek. ${Math.ceil(rl.resetInMs / 1000)}s sonra tekrar dene.` },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil(rl.resetInMs / 1000)) } }
+    )
   }
 
   try {
