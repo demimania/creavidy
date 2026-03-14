@@ -1,0 +1,17 @@
+*.tar.gz
+*.zip
+*.mp4
+*.png
+*.jpg
+*.jpeg
+backup_old_mvp/
+tsconfig.tsbuildinfo
+package-lock.json
+.next/
+node_modules/
+.git/
+capcut-ai-tool-workflow.md
+docs/
+*.tsbuildinfo
+mvp-technic/
+*.html
