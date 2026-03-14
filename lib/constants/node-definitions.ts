@@ -994,7 +994,7 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     description: 'Google Veo 3.1 — metinden video üretim',
     category: 'video-gen', subcategory: 'google',
     inputs: [txtR('Prompt')], outputs: [vid('Video')],
-    provider: 'Google', creditCost: 50, status: 'active',
+    provider: 'Google', creditCost: 50, status: 'active', isNew: true,
   },
   {
     id: 'veo31I2VNode', label: 'Veo 3.1 Image to Video', icon: '🎥',
@@ -1071,14 +1071,14 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     description: 'Runway Gen-4 — sinematik kalite video',
     category: 'video-gen', subcategory: 'runway',
     inputs: [txtR('Prompt'), img('Image')], outputs: [vid('Video')],
-    provider: 'Runway', creditCost: 40, status: 'soon',
+    provider: 'Runway', creditCost: 40, status: 'active', isNew: true,
   },
   {
     id: 'runwayGen4TurboNode', label: 'Runway Gen-4 Turbo', icon: '🚀',
     description: 'Runway Gen-4 Turbo — hızlı sinematik video',
     category: 'video-gen', subcategory: 'runway',
     inputs: [txtR('Prompt'), img('Image')], outputs: [vid('Video')],
-    provider: 'Runway', creditCost: 30, status: 'soon',
+    provider: 'Runway', creditCost: 30, status: 'active', isNew: true,
   },
   {
     id: 'runwayGen45Node', label: 'Runway Gen-4.5', icon: '✈️',
@@ -1127,7 +1127,7 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     description: 'Minimax Hailuo-02 — gelişmiş video üretim',
     category: 'video-gen', subcategory: 'minimax',
     inputs: [txtR('Prompt'), img('Image')], outputs: [vid('Video')],
-    provider: 'Minimax', creditCost: 25, status: 'active',
+    provider: 'Minimax', creditCost: 25, status: 'active', isNew: true,
   },
   {
     id: 'veo2Node', label: 'Veo 2', icon: '🎥',
@@ -1155,7 +1155,7 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     description: 'Luma Dream Machine Ray 2',
     category: 'video-gen', subcategory: 'luma',
     inputs: [txtR('Prompt'), img('Image')], outputs: [vid('Video')],
-    provider: 'Luma AI', creditCost: 25, status: 'active',
+    provider: 'Luma AI', creditCost: 25, status: 'active', isNew: true,
   },
   {
     id: 'lumaRay2FlashNode', label: 'Luma Ray 2 Flash', icon: '⚡',
@@ -1176,7 +1176,7 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     description: 'Alibaba Wan 2.6 video modeli',
     category: 'video-gen', subcategory: 'alibaba',
     inputs: [txtR('Prompt'), img('Image')], outputs: [vid('Video')],
-    provider: 'Alibaba', creditCost: 20, status: 'active',
+    provider: 'Alibaba', creditCost: 20, status: 'active', isNew: true,
   },
   // Creavidy aliases
   {

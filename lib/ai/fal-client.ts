@@ -70,6 +70,12 @@ export const CREDIT_COSTS: Record<string, number> = {
   'flux-kontext-edit': 15, 'remove-bg': 3, 'upscale-esrgan': 5, 'flux-fill-pro': 12,
   // Video Edit
   'fal-ai/latentsync': 20, 'fal-ai/wan/v2v': 25, 'fal-ai/video-upscaler': 10, 'fal-ai/rife-v4.6-video': 8,
+  // New video providers (Faz 7)
+  'fal-ai/runway-gen4/turbo/text-to-video': 30,
+  'fal-ai/veo3': 50,
+  'fal-ai/luma-dream-machine/ray-2/text-to-video': 20,
+  'fal-ai/minimax/video-01-live': 25,
+  'fal-ai/wan-pro/v2.2/t2v': 20,
 }
 
 export function getCreditCost(model: string): number {
@@ -412,6 +418,58 @@ export async function inpaintImage(params: {
     requestId: result.requestId,
     cost: 12,
   }
+}
+
+// ── New video generation functions (Faz 7) ──────────────────────────────────
+
+// Runway Gen-4
+export async function generateVideoRunway(params: { prompt: string; imageUrl?: string; duration?: number }): Promise<{ videoUrl: string; requestId: string }> {
+  const input: Record<string, unknown> = { prompt: params.prompt, duration: params.duration ?? 5 }
+  const result = await fal.subscribe('fal-ai/runway-gen4/turbo/text-to-video', {
+    input: input as any,
+    pollInterval: 3000,
+  }) as any
+  return { videoUrl: result.data?.video?.url || result.data?.output?.video?.url || '', requestId: String(result.requestId || '') }
+}
+
+// Veo 3.1 Text to Video
+export async function generateVideoVeo31(params: { prompt: string; duration?: number; aspectRatio?: string }): Promise<{ videoUrl: string; requestId: string }> {
+  const input: Record<string, unknown> = { prompt: params.prompt, duration: params.duration ?? 8, aspect_ratio: params.aspectRatio ?? '16:9' }
+  const result = await fal.subscribe('fal-ai/veo3', {
+    input: input as any,
+    pollInterval: 5000,
+  }) as any
+  return { videoUrl: result.data?.video?.url || result.data?.output?.video?.url || '', requestId: String(result.requestId || '') }
+}
+
+// Luma Dream Machine Ray 2
+export async function generateVideoLuma(params: { prompt: string; imageUrl?: string; duration?: number }): Promise<{ videoUrl: string; requestId: string }> {
+  const input: Record<string, unknown> = { prompt: params.prompt, duration: params.duration ?? 5 }
+  const result = await fal.subscribe('fal-ai/luma-dream-machine/ray-2/text-to-video', {
+    input: input as any,
+    pollInterval: 3000,
+  }) as any
+  return { videoUrl: result.data?.video?.url || result.data?.output?.video?.url || '', requestId: String(result.requestId || '') }
+}
+
+// Minimax Hailuo
+export async function generateVideoMinimax(params: { prompt: string; duration?: number }): Promise<{ videoUrl: string; requestId: string }> {
+  const input: Record<string, unknown> = { prompt: params.prompt }
+  const result = await fal.subscribe('fal-ai/minimax/video-01-live', {
+    input: input as any,
+    pollInterval: 3000,
+  }) as any
+  return { videoUrl: result.data?.video?.url || result.data?.output?.video?.url || '', requestId: String(result.requestId || '') }
+}
+
+// Wan 2.6 Pro
+export async function generateVideoWan(params: { prompt: string; duration?: number; aspectRatio?: string }): Promise<{ videoUrl: string; requestId: string }> {
+  const input: Record<string, unknown> = { prompt: params.prompt, duration: params.duration ?? 5, aspect_ratio: params.aspectRatio ?? '16:9' }
+  const result = await fal.subscribe('fal-ai/wan-pro/v2.2/t2v', {
+    input: input as any,
+    pollInterval: 3000,
+  }) as any
+  return { videoUrl: result.data?.video?.url || result.data?.output?.video?.url || '', requestId: String(result.requestId || '') }
 }
 
 // ── Video Editing functions ──────────────────────────────────────────────────

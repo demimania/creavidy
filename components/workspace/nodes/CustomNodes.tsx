@@ -11,6 +11,7 @@ import { executeSingleNode } from '@/lib/ai/execution-engine'
 import { toast } from 'sonner'
 import { VideoBriefNodeContent, FilmStripNodeContent } from './CapCutNodes'
 import { ImageEditNodeContent, SoonNodeContent } from './ImageEditNodes'
+import { MultiModelVideoNodeContent } from './MultiModelVideoNode'
 import { LipSyncNodeContent, VideoToVideoNodeContent, VideoUpscaleNodeContent, VideoEnhanceNodeContent } from './VideoEditNodes'
 import { SetVariableNodeContent, GetVariableNodeContent, TextFormatterNodeContent } from './VariableNodes'
 import { PromptVariableEditor } from './PromptVariableEditor'
@@ -1009,9 +1010,14 @@ export const nodeTypes = {
   enhancorUpscaleNode: SoonNodeContent,
   enhancorSkinNode: SoonNodeContent,
   recraftCrispUpscaleNode: SoonNodeContent,
+  // Video gen — active multi-model nodes (Faz 7)
+  runwayGen4TurboNode: (props: any) => <MultiModelVideoNodeContent data={{ ...props.data, config: { ...(props.data.config || {}), model: 'runway-gen4' } }} selected={props.selected} />,
+  veo31T2VNode: (props: any) => <MultiModelVideoNodeContent data={{ ...props.data, config: { ...(props.data.config || {}), model: 'veo3' } }} selected={props.selected} />,
+  minimaxHailuo02Node: (props: any) => <MultiModelVideoNodeContent data={{ ...props.data, config: { ...(props.data.config || {}), model: 'minimax' } }} selected={props.selected} />,
+  lumaRay2Node: (props: any) => <MultiModelVideoNodeContent data={{ ...props.data, config: { ...(props.data.config || {}), model: 'luma' } }} selected={props.selected} />,
+  wanVideoNode: (props: any) => <MultiModelVideoNodeContent data={{ ...props.data, config: { ...(props.data.config || {}), model: 'wan' } }} selected={props.selected} />,
   // Video gen soon
   grokVideoNode: SoonNodeContent,
-  veo31T2VNode: SoonNodeContent,
   veo31I2VNode: SoonNodeContent,
   seedanceV15ProNode: SoonNodeContent,
   sora2Node: SoonNodeContent,
@@ -1023,21 +1029,17 @@ export const nodeTypes = {
   seedanceV10Node: SoonNodeContent,
   pixverseV45Node: SoonNodeContent,
   runwayGen4Node: SoonNodeContent,
-  runwayGen4TurboNode: SoonNodeContent,
   runwayGen45Node: SoonNodeContent,
   runwayGen3TurboNode: SoonNodeContent,
   kling3Node: SoonNodeContent,
   kling16Node: SoonNodeContent,
   klingVideoNode: SoonNodeContent,
   klingFirstLastNode: SoonNodeContent,
-  minimaxHailuo02Node: SoonNodeContent,
   veo2Node: SoonNodeContent,
   minimaxVideoDirectorNode: SoonNodeContent,
   minimaxVideo01Node: SoonNodeContent,
-  lumaRay2Node: SoonNodeContent,
   lumaRay2FlashNode: SoonNodeContent,
   hunyuanVideoNode: SoonNodeContent,
-  wanVideoNode: SoonNodeContent,
   // Video v2v soon
   grokVideoEditNode: SoonNodeContent,
   ltx2V2VNode: SoonNodeContent,
