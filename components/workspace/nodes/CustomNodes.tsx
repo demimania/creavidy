@@ -20,6 +20,7 @@ import { ThreeDNodeContent, AudioGenNodeContent, VoiceCloneNodeContent } from '.
 import { ImageI2INodeContent } from './ImageI2INodes'
 import { ToolboxNodeContent } from './ToolboxNodes'
 import { CommunityNodeContent } from './CommunityNodes'
+import { NodeErrorBoundary } from './NodeErrorBoundary'
 
 // Highlight ring class for card badge navigation
 function useNodeHighlight(id: string) {
@@ -862,6 +863,23 @@ if (typeof document !== 'undefined') {
   }
 }
 
+// ── Error Boundary wrapper for all nodeTypes ─────────────────────────────────
+// Wraps every node component so a single node crash never brings down the canvas.
+type AnyNodeComponent = React.ComponentType<any>
+function safeNodeTypes<T extends Record<string, AnyNodeComponent>>(types: T): T {
+  const wrapped = {} as T
+  for (const [key, NodeComponent] of Object.entries(types) as [keyof T, AnyNodeComponent][]) {
+    const SafeNode = (props: any) => (
+      <NodeErrorBoundary nodeId={props.id} nodeLabel={props.data?.label}>
+        <NodeComponent {...props} />
+      </NodeErrorBoundary>
+    )
+    SafeNode.displayName = `Safe(${String(key)})`
+    wrapped[key] = SafeNode as T[typeof key]
+  }
+  return wrapped
+}
+
 // ── Export ───────────────────────────────────────────────────────────────────
 
 export const ScriptNode = ScriptNodeContent
@@ -871,7 +889,7 @@ export const VideoGenNode = VideoGenNodeContent
 export const CaptionNode = CaptionNodeContent
 export const ExportNode = ExportNodeContent
 
-export const nodeTypes = {
+export const nodeTypes = safeNodeTypes({
   scriptNode: ScriptNodeContent,
   voiceNode: VoiceNodeContent,
   imageGenNode: ImageGenNodeContent,
@@ -1140,4 +1158,4 @@ export const nodeTypes = {
   increaseFrameRateNode: CommunityNodeContent,
   videoSmootherCommunityNode: CommunityNodeContent,
   klingLipSyncCommunityNode: CommunityNodeContent,
-}
+})
