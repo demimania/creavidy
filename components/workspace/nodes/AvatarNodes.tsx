@@ -45,6 +45,11 @@ const AVATAR_NODE_MAP: Record<string, {
     inputMode: 'photo+audio',
     description: 'Portre + ses → animasyon',
   },
+  runwayAvatarPortraitNode: {
+    provider: 'runway', color: '#fb7185', creditCost: 30,
+    inputMode: 'photo+script',
+    description: 'Portre + prompt → avatar video',
+  },
 }
 
 const PROVIDER_LABELS: Record<AvatarProvider, string> = {

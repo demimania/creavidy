@@ -8,11 +8,12 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/services/rate-limit'
 
 // ── Credit costs per node ─────────────────────────────────────────────────────
 const AVATAR_COSTS: Record<string, number> = {
-  heygenTalkingPhotoNode:  20,
-  heygenVideoAvatarNode:   30,
-  hedraCharacterNode:      25,
-  hedraLipSyncNode:        20,
-  runwayActTwoAvatarNode:  35,
+  heygenTalkingPhotoNode:   20,
+  heygenVideoAvatarNode:    30,
+  hedraCharacterNode:       25,
+  hedraLipSyncNode:         20,
+  runwayActTwoAvatarNode:   35,
+  runwayAvatarPortraitNode: 30,
 }
 
 // ── HeyGen ────────────────────────────────────────────────────────────────────
@@ -191,6 +192,37 @@ async function runwayActTwo(params: {
   return { taskId }
 }
 
+async function runwayPortraitGen(params: {
+  portraitUrl: string
+  prompt: string
+}): Promise<{ taskId: string }> {
+  const { portraitUrl, prompt } = params
+  const apiKey = process.env.RUNWAYML_API_SECRET
+  if (!apiKey) throw new Error('RUNWAYML_API_SECRET eksik — .env.local dosyasına ekleyin')
+
+  const res = await fetch('https://api.runwayml.com/v1/image_to_video', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'X-Runway-Version': '2024-11-06',
+    },
+    body: JSON.stringify({
+      model: 'gen4_turbo',
+      promptImage: portraitUrl,
+      promptText: prompt,
+      duration: 5,
+      ratio: '1280:720',
+    }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.message || data.error || 'Runway Portrait Gen başarısız')
+
+  const taskId: string = data.id
+  if (!taskId) throw new Error('Runway: task ID alınamadı')
+  return { taskId }
+}
+
 async function runwayPollTaskStatus(taskId: string): Promise<string | null> {
   const apiKey = process.env.RUNWAYML_API_SECRET!
   const res = await fetch(`https://api.runwayml.com/v1/tasks/${taskId}`, {
@@ -273,13 +305,21 @@ export async function POST(req: NextRequest) {
       outputUrl = await pollUntilDone(() => hedraPollProjectStatus(projectId))
     }
 
-    // ── Runway Act-Two ────────────────────────────────────────────────────────
+    // ── Runway ────────────────────────────────────────────────────────────────
     else if (provider === 'runway') {
       if (!portraitUrl) return NextResponse.json({ error: 'Portre fotoğrafı gerekli' }, { status: 400 })
-      if (!audioUrl)    return NextResponse.json({ error: 'Ses dosyası gerekli' }, { status: 400 })
 
-      const { taskId } = await runwayActTwo({ portraitUrl, audioUrl })
-      outputUrl = await pollUntilDone(() => runwayPollTaskStatus(taskId))
+      if (nodeId === 'runwayAvatarPortraitNode') {
+        // Portrait + Prompt → video (Runway Gen-4 standard)
+        if (!script) return NextResponse.json({ error: 'Prompt gerekli' }, { status: 400 })
+        const { taskId } = await runwayPortraitGen({ portraitUrl, prompt: script })
+        outputUrl = await pollUntilDone(() => runwayPollTaskStatus(taskId))
+      } else {
+        // Act-Two: portrait + audio
+        if (!audioUrl) return NextResponse.json({ error: 'Ses dosyası gerekli' }, { status: 400 })
+        const { taskId } = await runwayActTwo({ portraitUrl, audioUrl })
+        outputUrl = await pollUntilDone(() => runwayPollTaskStatus(taskId))
+      }
     }
 
     else {

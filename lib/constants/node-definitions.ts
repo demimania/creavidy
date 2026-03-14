@@ -1822,6 +1822,13 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     inputs: [imgR('Portrait'), aud('Audio')], outputs: [vid('Avatar Video')],
     provider: 'Runway', creditCost: 35, status: 'beta', isNew: true,
   },
+  {
+    id: 'runwayAvatarPortraitNode', label: 'Runway Portrait Animator', icon: '🧬',
+    description: 'Portre fotoğrafından prompt ile avatar videosu — Runway Gen-4',
+    category: 'ai-avatar', subcategory: 'runway',
+    inputs: [imgR('Portrait'), txtR('Prompt')], outputs: [vid('Avatar Video')],
+    provider: 'Runway', creditCost: 30, status: 'beta', isNew: true,
+  },
 ]
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────

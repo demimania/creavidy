@@ -83,6 +83,26 @@ const STATUS: Record<string, string> = {
   soon: 'bg-white/4 text-zinc-600 border border-white/6',
 }
 
+// ─── Sub-category header (used inside grouped panels) ─────────────────────────
+function SubCatHeader({ icon, label, color }: { icon: string; label: string; color: string }) {
+  return (
+    <div className="flex items-center gap-1.5 px-2 pt-2 pb-0.5">
+      <span className="text-[10px]">{icon}</span>
+      <span className="text-[9px] font-bold tracking-widest uppercase" style={{ color }}>{label}</span>
+      <div className="flex-1 h-[1px] ml-1" style={{ background: `linear-gradient(to right, ${color}30, transparent)` }} />
+    </div>
+  )
+}
+
+// ─── Categories that should render with sub-headers ────────────────────────────
+const GROUPED_SUPER_CATS: Record<string, { id: string; icon: string; label: string; color: string }[]> = {
+  'ai-avatar': [
+    { id: 'heygen', icon: '🤖', label: 'HeyGen',  color: '#3b82f6' },
+    { id: 'hedra',  icon: '✨', label: 'Hedra',   color: '#a855f7' },
+    { id: 'runway', icon: '🚀', label: 'Runway',  color: '#f43f5e' },
+  ],
+}
+
 // ─── Node row ─────────────────────────────────────────────────────────────────
 function NodeRow({ node, onAdd }: { node: NodeDefinition; onAdd: (n: NodeDefinition) => void }) {
   const isSoon = node.status === 'soon'
@@ -204,11 +224,11 @@ export function CanvasContextMenu() {
           style={{
             width: 340,
             maxHeight: 300,
-            background: 'rgba(10, 4, 20, 0.96)',
-            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'rgba(18, 8, 38, 0.97)',
+            border: '1px solid rgba(167,139,250,0.18)',
             borderRadius: 10,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(20px)',
+            boxShadow: '0 8px 40px rgba(0,0,0,0.65), 0 0 0 1px rgba(167,139,250,0.08)',
+            backdropFilter: 'blur(24px)',
             ...pos,
           }}
         >
@@ -266,12 +286,26 @@ export function CanvasContextMenu() {
                   })}
                 </div>
 
-                {/* Right — nodes */}
+                {/* Right — nodes (grouped or flat) */}
                 <div className="flex-1 overflow-y-auto py-1 px-1" style={{ scrollbarWidth: 'none' }}>
-                  {activeNodes.length === 0
-                    ? <p className="text-[10px] text-zinc-600 text-center py-6">No nodes</p>
-                    : activeNodes.map(n => <NodeRow key={n.id} node={n} onAdd={handleAdd} />)
-                  }
+                  {activeNodes.length === 0 ? (
+                    <p className="text-[10px] text-zinc-600 text-center py-6">No nodes</p>
+                  ) : GROUPED_SUPER_CATS[activeSuper] ? (
+                    // Grouped rendering with sub-headers
+                    GROUPED_SUPER_CATS[activeSuper].map(group => {
+                      const groupNodes = activeNodes.filter(n => n.subcategory === group.id)
+                      if (groupNodes.length === 0) return null
+                      return (
+                        <div key={group.id}>
+                          <SubCatHeader icon={group.icon} label={group.label} color={group.color} />
+                          {groupNodes.map(n => <NodeRow key={n.id} node={n} onAdd={handleAdd} />)}
+                        </div>
+                      )
+                    })
+                  ) : (
+                    // Flat rendering
+                    activeNodes.map(n => <NodeRow key={n.id} node={n} onAdd={handleAdd} />)
+                  )}
                 </div>
               </>
             )}

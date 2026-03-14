@@ -1164,5 +1164,6 @@ export const nodeTypes = safeNodeTypes({
   heygenVideoAvatarNode:   AvatarNodeContent,
   hedraCharacterNode:      AvatarNodeContent,
   hedraLipSyncNode:        AvatarNodeContent,
-  runwayActTwoAvatarNode:  AvatarNodeContent,
+  runwayActTwoAvatarNode:   AvatarNodeContent,
+  runwayAvatarPortraitNode: AvatarNodeContent,
 })
