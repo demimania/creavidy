@@ -625,6 +625,35 @@ export async function cloneVoiceElevenLabs(params: { text: string; voiceId?: str
 
 export { fal }
 
+// ── Toolbox Matte functions (Faz A-2) ────────────────────────────────────────
+
+// Mask Extractor — birefnet subject segmentation
+export async function extractMask(params: { imageUrl: string }): Promise<{ maskUrl: string; requestId: string }> {
+  const result = await fal.subscribe('fal-ai/birefnet', {
+    input: { image_url: params.imageUrl, model: 'General Use (Light)' } as any,
+    pollInterval: 2000,
+  }) as any
+  return { maskUrl: result.data?.image?.url || '', requestId: String(result.requestId || '') }
+}
+
+// Mask by Text — SAM2 grounded segmentation
+export async function maskByText(params: { imageUrl: string; text: string }): Promise<{ maskUrl: string; requestId: string }> {
+  const result = await fal.subscribe('fal-ai/sam2', {
+    input: { image_url: params.imageUrl, text_prompts: [params.text] } as any,
+    pollInterval: 2000,
+  }) as any
+  return { maskUrl: result.data?.mask_url || result.data?.images?.[0]?.url || '', requestId: String(result.requestId || '') }
+}
+
+// Video Matte — birefnet video background removal
+export async function videoMatte(params: { videoUrl: string }): Promise<{ matteUrl: string; requestId: string }> {
+  const result = await fal.subscribe('fal-ai/birefnet/video', {
+    input: { video_url: params.videoUrl } as any,
+    pollInterval: 3000,
+  }) as any
+  return { matteUrl: result.data?.video?.url || '', requestId: String(result.requestId || '') }
+}
+
 // ── Image I2I functions (Faz A) ──────────────────────────────────────────────
 
 // Flux Dev Redux — image variation

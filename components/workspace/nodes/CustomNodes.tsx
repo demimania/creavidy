@@ -18,6 +18,7 @@ import { PromptVariableEditor } from './PromptVariableEditor'
 import { TextIteratorNodeContent as IteratorTextNodeContent, ImageIteratorNodeContent, TaskManagerNodeContent } from './IteratorNodes'
 import { ThreeDNodeContent, AudioGenNodeContent, VoiceCloneNodeContent } from './SpecialNodes'
 import { ImageI2INodeContent } from './ImageI2INodes'
+import { ToolboxNodeContent } from './ToolboxNodes'
 
 // Highlight ring class for card badge navigation
 function useNodeHighlight(id: string) {
@@ -918,22 +919,9 @@ export const nodeTypes = {
   depthAnythingV2Node: SoonNodeContent,
   compareNode: SoonNodeContent,
   klingElementNode: SoonNodeContent,
-  levelsNode: SoonNodeContent,
-  compositorNode: SoonNodeContent,
-  painterNode: SoonNodeContent,
-  cropNode: SoonNodeContent,
-  resizeNode: SoonNodeContent,
-  blurNode: SoonNodeContent,
-  invertNode: SoonNodeContent,
-  channelsNode: SoonNodeContent,
-  extractVideoFrameNode: SoonNodeContent,
-  videoConcatenatorNode: SoonNodeContent,
-  maskExtractorNode: SoonNodeContent,
-  maskByTextNode: SoonNodeContent,
-  matteGrowShrinkNode: SoonNodeContent,
-  mergeAlphaNode: SoonNodeContent,
-  videoMatteNode: SoonNodeContent,
-  videoMaskByTextNode: SoonNodeContent,
+  painterNode: SoonNodeContent,          // complex interactive tool
+  videoConcatenatorNode: SoonNodeContent, // requires ffmpeg
+  videoMaskByTextNode: SoonNodeContent,   // SAM2 video (soon)
   // Image gen soon nodes
   flux2DevLoraNode: SoonNodeContent,
   flux2ProNode: SoonNodeContent,
@@ -1122,6 +1110,21 @@ export const nodeTypes = {
   img2ImgSdNode: ImageI2INodeContent,
   sdControlNetsNode: ImageI2INodeContent,
   sketchToImageNode: ImageI2INodeContent,
+  // Toolbox Editing — Faz A-2
+  levelsNode: ToolboxNodeContent,
+  cropNode: ToolboxNodeContent,
+  resizeNode: ToolboxNodeContent,
+  blurNode: ToolboxNodeContent,
+  invertNode: ToolboxNodeContent,
+  channelsNode: ToolboxNodeContent,
+  compositorNode: ToolboxNodeContent,
+  extractVideoFrameNode: ToolboxNodeContent,
+  // Toolbox Matte — Faz A-2
+  maskExtractorNode: ToolboxNodeContent,
+  maskByTextNode: ToolboxNodeContent,
+  matteGrowShrinkNode: ToolboxNodeContent,
+  mergeAlphaNode: ToolboxNodeContent,
+  videoMatteNode: ToolboxNodeContent,
   fluxReduxControlNetNode: SoonNodeContent,
   sdxlConsistentCharNode: SoonNodeContent,
   sdxlMultiControlNetLoraNode: SoonNodeContent,
