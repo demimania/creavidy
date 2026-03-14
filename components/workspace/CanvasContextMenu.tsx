@@ -27,7 +27,7 @@ function NodeRow({ node, onAdd }: { node: NodeDefinition; onAdd: (n: NodeDefinit
     <button
       onClick={() => !isSoon && onAdd(node)}
       className={`
-        w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-all duration-100
+        w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-all duration-100
         ${isSoon
           ? 'opacity-40 cursor-default'
           : 'hover:bg-[#D1FE17]/5 hover:border-[#D1FE17]/10 border border-transparent cursor-pointer group'
@@ -35,10 +35,10 @@ function NodeRow({ node, onAdd }: { node: NodeDefinition; onAdd: (n: NodeDefinit
       `}
     >
       {/* Icon */}
-      <span className="text-base w-5 text-center shrink-0 leading-none">{node.icon}</span>
+      <span className="text-[13px] w-4 text-center shrink-0 leading-none">{node.icon}</span>
 
       {/* Label */}
-      <span className={`flex-1 text-[12px] font-medium truncate ${isSoon ? 'text-zinc-500' : 'text-zinc-200 group-hover:text-white'}`}>
+      <span className={`flex-1 text-[11px] font-medium truncate ${isSoon ? 'text-zinc-500' : 'text-zinc-200 group-hover:text-white'}`}>
         {node.label}
       </span>
 
@@ -136,7 +136,7 @@ export function CanvasContextMenu() {
   // Smart position to stay in viewport
   const style: React.CSSProperties = {}
   if (contextMenu) {
-    const W = 480, H = 420
+    const W = 380, H = 340
     const vw = window.innerWidth, vh = window.innerHeight
     style.left = contextMenu.x + W > vw ? Math.max(8, contextMenu.x - W) : contextMenu.x
     style.top  = contextMenu.y + H > vh ? Math.max(8, contextMenu.y - H) : contextMenu.y
@@ -151,19 +151,19 @@ export function CanvasContextMenu() {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: -6 }}
           transition={{ duration: 0.13, ease: [0.16, 1, 0.3, 1] }}
-          className="fixed z-[100] rounded-2xl overflow-hidden flex flex-col"
+          className="fixed z-[100] rounded-xl overflow-hidden flex flex-col"
           style={{
-            width: 480,
-            maxHeight: 420,
+            width: 380,
+            maxHeight: 340,
             background: 'rgba(13, 5, 26, 0.97)',
-            border: '1px solid rgba(139, 92, 246, 0.2)',
-            boxShadow: '0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.06)',
+            border: '1px solid rgba(139, 92, 246, 0.18)',
+            boxShadow: '0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.05)',
             backdropFilter: 'blur(24px)',
             ...style,
           }}
         >
           {/* Search bar */}
-          <div className="flex items-center gap-2.5 px-4 py-3 border-b border-white/6 shrink-0">
+          <div className="flex items-center gap-2 px-3 py-2 border-b border-white/6 shrink-0">
             <Search className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
             <input
               ref={searchRef}
@@ -187,7 +187,7 @@ export function CanvasContextMenu() {
 
             {isSearching ? (
               /* ── Search results (full width) ── */
-              <div className="flex-1 overflow-y-auto p-2 space-y-0.5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/8">
+              <div className="flex-1 overflow-y-auto p-1.5 space-y-0.5" style={{ scrollbarWidth: 'none' }}>
                 {searchResults.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-10 text-zinc-600">
                     <Search className="w-6 h-6 mb-2 opacity-40" />
@@ -204,7 +204,8 @@ export function CanvasContextMenu() {
               <>
                 {/* Left — category list */}
                 <div
-                  className="w-44 shrink-0 border-r border-white/6 overflow-y-auto py-1.5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/8"
+                  className="w-36 shrink-0 border-r border-white/6 overflow-y-auto py-1"
+                  style={{ scrollbarWidth: 'none' }}
                 >
                   {categories.map(cat => {
                     const isActive = cat.id === activeCat
@@ -215,7 +216,7 @@ export function CanvasContextMenu() {
                         onMouseEnter={() => setActiveCat(cat.id)}
                         onClick={() => setActiveCat(cat.id)}
                         className={`
-                          w-full flex items-center gap-2.5 px-3 py-2 text-left transition-all duration-100 relative
+                          w-full flex items-center gap-2 px-2.5 py-1.5 text-left transition-all duration-100 relative
                           ${isActive
                             ? 'bg-[#a78bfa]/10 text-white'
                             : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/4'
@@ -226,8 +227,8 @@ export function CanvasContextMenu() {
                         {isActive && (
                           <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-5 bg-[#a78bfa] rounded-full" />
                         )}
-                        <span className="text-sm leading-none shrink-0">{cat.icon}</span>
-                        <span className="flex-1 text-[11px] font-medium leading-tight truncate">{cat.label}</span>
+                        <span className="text-[13px] leading-none shrink-0">{cat.icon}</span>
+                        <span className="flex-1 text-[10px] font-medium leading-tight truncate">{cat.label}</span>
                         <div className="flex items-center gap-1 shrink-0">
                           <span className={`text-[9px] font-mono tabular-nums ${isActive ? 'text-[#a78bfa]/70' : 'text-zinc-700'}`}>
                             {activeCount}
@@ -240,13 +241,13 @@ export function CanvasContextMenu() {
                 </div>
 
                 {/* Right — node list */}
-                <div className="flex-1 overflow-y-auto py-1.5 px-1.5 space-y-0.5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/8">
+                <div className="flex-1 overflow-y-auto py-1 px-1.5 space-y-0.5" style={{ scrollbarWidth: 'none' }}>
                   {/* Category header */}
-                  <div className="flex items-center gap-2 px-2 pb-1 mb-1 border-b border-white/5">
-                    <span className="text-sm leading-none">
+                  <div className="flex items-center gap-1.5 px-2 pb-1 mb-0.5 border-b border-white/5">
+                    <span className="text-[11px] leading-none">
                       {categories.find(c => c.id === activeCat)?.icon}
                     </span>
-                    <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
+                    <span className="text-[9px] font-semibold text-zinc-600 uppercase tracking-wider">
                       {categories.find(c => c.id === activeCat)?.label}
                     </span>
                   </div>
@@ -260,7 +261,7 @@ export function CanvasContextMenu() {
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between px-4 py-2 border-t border-white/5 shrink-0">
+          <div className="flex items-center justify-between px-3 py-1.5 border-t border-white/5 shrink-0">
             <span className="text-[9px] text-zinc-700">Sağ-tık ile ekle · ESC kapat</span>
             <span className="text-[9px] text-zinc-700 font-mono">
               {categories.reduce((a, c) => a + c.nodes.length, 0)} node
