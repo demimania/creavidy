@@ -310,38 +310,59 @@ function WorkspaceContent() {
                 }
                 exit={{ opacity: 0, y: 20, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute bottom-14 left-4 z-30 w-[380px] rounded-2xl border border-white/10 bg-[#0F051D]/95 backdrop-blur-2xl shadow-2xl shadow-black/40 overflow-hidden flex flex-col"
-                style={{ maxHeight: 'calc(100% - 80px)' }}
+                className="absolute bottom-14 left-4 z-30 w-[380px] rounded-2xl overflow-hidden flex flex-col"
+                style={{
+                  maxHeight: 'calc(100% - 80px)',
+                  background: '#08011a',
+                  border: '1px solid rgba(124,58,237,0.25)',
+                  boxShadow: '0 0 0 1px rgba(124,58,237,0.1), 0 24px 60px rgba(0,0,0,0.6), 0 0 40px rgba(124,58,237,0.12)',
+                }}
               >
-                {/* Chat Window Header */}
-                <div className="flex items-center h-12 px-3 border-b border-white/10 flex-shrink-0 cursor-pointer"
-                  onClick={() => chatMinimized && setChatMinimized(false)}
-                >
-                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#a78bfa] to-[#06d6a0] flex items-center justify-center mr-2">
-                    <MessageSquare className="w-3.5 h-3.5 text-white" />
-                  </div>
-                  <span className="text-xs font-semibold text-white flex-1">AI Video Director</span>
-                  <div className="flex items-center gap-0.5">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setChatMinimized(!chatMinimized) }}
-                      className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/5 transition-all"
-                      title={chatMinimized ? 'Expand' : 'Minimize'}
-                    >
-                      <Minus className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setChatOpen(false); setChatMinimized(false) }}
-                      className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/5 transition-all"
-                      title="Close Chat"
-                    >
-                      <X className="w-3.5 h-3.5" />
+                {/* Minimize bar — sadece minimize edilince görünür */}
+                {chatMinimized && (
+                  <div className="flex items-center gap-2 h-12 px-3 cursor-pointer"
+                    onClick={() => setChatMinimized(false)}>
+                    <div className="w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}>
+                      <MessageSquare className="w-3 h-3 text-white" />
+                    </div>
+                    <span className="flex-1 text-[11px] font-medium" style={{ color: '#a78bfa' }}>AI Video Director</span>
+                    <button onClick={(e) => { e.stopPropagation(); setChatOpen(false) }}
+                      className="w-5 h-5 rounded flex items-center justify-center"
+                      style={{ color: 'rgba(167,139,250,0.4)' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = '#f87171')}
+                      onMouseLeave={e => (e.currentTarget.style.color = 'rgba(167,139,250,0.4)')}>
+                      <X className="w-3 h-3" />
                     </button>
                   </div>
-                </div>
+                )}
 
                 {/* Chat Content — hidden when minimized */}
                 {!chatMinimized && (
-                  <div className="flex-1 overflow-hidden">
+                  <div className="flex-1 overflow-hidden min-h-0">
+                    {/* Minimize / Close butonları ChatPanel header'ının üstünde float */}
+                    <div className="absolute top-3 right-3 z-10 flex items-center gap-0.5">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setChatMinimized(true) }}
+                        className="w-5 h-5 rounded flex items-center justify-center transition-all"
+                        style={{ color: 'rgba(167,139,250,0.35)' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = '#a78bfa')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(167,139,250,0.35)')}
+                        title="Minimize"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setChatOpen(false); setChatMinimized(false) }}
+                        className="w-5 h-5 rounded flex items-center justify-center transition-all"
+                        style={{ color: 'rgba(167,139,250,0.35)' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = '#f87171')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(167,139,250,0.35)')}
+                        title="Close"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
                     <WorkspaceChatPanel projectId={projectId} />
                   </div>
                 )}

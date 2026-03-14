@@ -238,24 +238,15 @@ export function ChatPanel({
 
       {/* ── Header ─────────────────────────────────────────── */}
       <div className="relative flex items-center gap-3 px-4 py-3.5 border-b border-[#7c3aed]/20 flex-shrink-0 overflow-hidden">
-        {/* Ambient gradient */}
         <div className="absolute inset-0 pointer-events-none"
           style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.18) 0%, rgba(99,102,241,0.08) 50%, transparent 100%)' }} />
-
-        {/* Glow blob */}
         <div className="absolute -top-4 -left-4 w-24 h-24 rounded-full pointer-events-none"
           style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%)', filter: 'blur(12px)' }} />
 
-        {/* Bot icon with glow */}
         <div className="relative w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{
-            background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
-            boxShadow: '0 0 20px rgba(124,58,237,0.5), 0 0 40px rgba(124,58,237,0.2)',
-          }}>
+          style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)', boxShadow: '0 0 20px rgba(124,58,237,0.5), 0 0 40px rgba(124,58,237,0.2)' }}>
           <Bot className="w-4 h-4 text-white" />
-          {/* Status dot */}
-          <span className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#08011a] transition-colors
-            ${isLoading ? 'bg-[#facc15] animate-pulse' : 'bg-[#4ade80]'}`} />
+          <span className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#08011a] transition-colors ${isLoading ? 'bg-[#facc15] animate-pulse' : 'bg-[#4ade80]'}`} />
         </div>
 
         <div className="flex-1 relative">
@@ -265,7 +256,6 @@ export function ChatPanel({
           </p>
         </div>
 
-        {/* Status badge */}
         <div className="relative flex items-center gap-1.5 px-2.5 py-1 rounded-full"
           style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.25)' }}>
           <Sparkles className="w-2.5 h-2.5" style={{ color: '#a78bfa' }} />
