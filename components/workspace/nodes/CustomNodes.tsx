@@ -11,6 +11,7 @@ import { executeSingleNode } from '@/lib/ai/execution-engine'
 import { toast } from 'sonner'
 import { VideoBriefNodeContent, FilmStripNodeContent } from './CapCutNodes'
 import { ImageEditNodeContent, SoonNodeContent } from './ImageEditNodes'
+import { LipSyncNodeContent, VideoToVideoNodeContent, VideoUpscaleNodeContent, VideoEnhanceNodeContent } from './VideoEditNodes'
 import { SetVariableNodeContent, GetVariableNodeContent, TextFormatterNodeContent } from './VariableNodes'
 import { PromptVariableEditor } from './PromptVariableEditor'
 
@@ -1058,6 +1059,11 @@ export const nodeTypes = {
   sync2ProNode: SoonNodeContent,
   klingAiAvatarNode: SoonNodeContent,
   pixverseLipsyncNode: SoonNodeContent,
+  // Video Edit — active nodes (fal.ai)
+  lipSyncLatentSyncNode: LipSyncNodeContent,
+  videoToVideoWanNode: VideoToVideoNodeContent,
+  videoUpscaleNode: VideoUpscaleNodeContent,
+  videoEnhanceRifeNode: VideoEnhanceNodeContent,
   // Video enhance soon
   topazVideoUpscaleNode: SoonNodeContent,
   briaVideoUpscaleNode: SoonNodeContent,

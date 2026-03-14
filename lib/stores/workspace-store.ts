@@ -23,6 +23,7 @@ export const NODE_COLORS: Record<string, string> = {
   videoBrief: '#3b82f6',
   filmStrip: '#f59e0b',
   imageEdit: '#f43f5e',
+  videoEdit: '#22d3ee',
 }
 
 // ── Connection rules: which source types can connect to which targets ────────
@@ -108,6 +109,16 @@ export interface ImageEditConfig {
   scale?: number
 }
 
+// ── Video Edit Nodes ──────────────────────────────
+export interface VideoEditConfig {
+  editType: 'lipsync' | 'v2v' | 'upscale' | 'enhance'
+  videoUrl?: string
+  audioUrl?: string
+  prompt?: string
+  strength?: number
+  scale?: number
+}
+
 // ── CapCut-style nodes ────────────────────────────
 export interface VideoBriefConfig {
   prompt: string;
@@ -150,7 +161,7 @@ export interface FilmStripConfig {
   exportedVideoUrl?: string;
 }
 
-export type AnyNodeConfig = ScriptConfig | VoiceConfig | ImageGenConfig | VideoGenConfig | CaptionConfig | ExportConfig | LLMConfig | ArrayConfig | RouterConfig | TextIteratorConfig | SystemPromptConfig | VideoBriefConfig | FilmStripConfig | ImageEditConfig
+export type AnyNodeConfig = ScriptConfig | VoiceConfig | ImageGenConfig | VideoGenConfig | CaptionConfig | ExportConfig | LLMConfig | ArrayConfig | RouterConfig | TextIteratorConfig | SystemPromptConfig | VideoBriefConfig | FilmStripConfig | ImageEditConfig | VideoEditConfig
 
 export interface NodeData {
   label: string

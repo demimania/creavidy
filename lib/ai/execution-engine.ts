@@ -32,6 +32,12 @@ const NODE_API_MAP: Record<string, string> = {
   briaRemoveBgNode:   '/api/generate/image-edit',
   upscaleNode:        '/api/generate/image-edit',
   fluxFillProNode:    '/api/generate/image-edit',
+  // Video Edit nodes
+  videoEdit:              '/api/generate/video-edit',
+  lipSyncLatentSyncNode:  '/api/generate/video-edit',
+  videoToVideoWanNode:    '/api/generate/video-edit',
+  videoUpscaleNode:       '/api/generate/video-edit',
+  videoEnhanceRifeNode:   '/api/generate/video-edit',
 }
 
 // ── Build body from node config ─────────────────────────────────────────────
@@ -113,6 +119,32 @@ function buildRequestBody(node: Node<NodeData>, parentOutputs: Record<string, st
         prompt: c.prompt,
         maskUrl: c.maskUrl,
         scale: c.scale || 2,
+      }
+    }
+
+    case 'videoEdit':
+    case 'lipSyncLatentSyncNode':
+    case 'videoToVideoWanNode':
+    case 'videoUpscaleNode':
+    case 'videoEnhanceRifeNode': {
+      const c = config as Record<string, any>
+      // Infer editType from node type if not in config
+      const editTypeMap: Record<string, string> = {
+        lipSyncLatentSyncNode: 'lipsync',
+        videoToVideoWanNode: 'v2v',
+        videoUpscaleNode: 'upscale',
+        videoEnhanceRifeNode: 'enhance',
+      }
+      const resolvedEditType = c.editType || editTypeMap[node.data.type] || 'enhance'
+      const videoInputUrl = Object.values(parentOutputs).find(url => url?.match(/\.(mp4|webm|mov)/i) || url?.includes('fal.media')) || c.videoUrl || ''
+      const audioInputUrl = Object.values(parentOutputs).find(url => url?.match(/\.(mp3|wav|ogg)/i)) || c.audioUrl || ''
+      return {
+        editType: resolvedEditType,
+        videoUrl: videoInputUrl,
+        audioUrl: audioInputUrl,
+        prompt: c.prompt || '',
+        strength: c.strength ?? 0.7,
+        scale: c.scale ?? 2,
       }
     }
 

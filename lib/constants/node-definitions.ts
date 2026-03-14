@@ -1183,6 +1183,13 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
 
   // ═══ VIDEO — FROM VIDEO (18) ═══════════════════════════════════════════════
   {
+    id: 'videoToVideoWanNode', label: 'Video to Video (Wan)', icon: '🔄',
+    description: 'fal-ai/wan/v2v ile video-to-video stil transferi — prompt + video → yeni video',
+    category: 'video-v2v', subcategory: 'transform',
+    inputs: [vidR('Video'), txtR('Prompt')], outputs: [vid('Video')],
+    provider: 'fal.ai / Alibaba', creditCost: 25, status: 'active', isNew: true,
+  },
+  {
     id: 'grokVideoEditNode', label: 'Grok Imagine - Video Edit', icon: '⚡',
     description: 'xAI Grok ile video düzenleme',
     category: 'video-v2v', subcategory: 'edit',
@@ -1311,6 +1318,13 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
 
   // ═══ VIDEO — LIP SYNC (4) ══════════════════════════════════════════════════
   {
+    id: 'lipSyncLatentSyncNode', label: 'Lip Sync (LatentSync)', icon: '👄',
+    description: 'fal-ai/latentsync ile dudak senkronizasyonu — video + ses → lip sync video',
+    category: 'video-lipsync', subcategory: 'lipsync',
+    inputs: [vidR('Video'), { name: 'Audio', type: 'audio', required: true }], outputs: [vid('Video')],
+    provider: 'fal.ai', creditCost: 20, status: 'active', isNew: true,
+  },
+  {
     id: 'omnihumanV15Node', label: 'Omnihuman V1.5', icon: '👤',
     description: 'Omnihuman V1.5 — gerçekçi dudak senkronizasyonu',
     category: 'video-lipsync', subcategory: 'lipsync',
@@ -1340,6 +1354,20 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
   },
 
   // ═══ VIDEO — ENHANCE (4) ══════════════════════════════════════════════════
+  {
+    id: 'videoUpscaleNode', label: 'Video Upscale (fal.ai)', icon: '🔬',
+    description: 'fal-ai/video-upscaler ile video çözünürlük artırma',
+    category: 'video-enhance', subcategory: 'upscale',
+    inputs: [vidR('Video')], outputs: [vid('Video')],
+    provider: 'fal.ai', creditCost: 10, status: 'active', isNew: true,
+  },
+  {
+    id: 'videoEnhanceRifeNode', label: 'Video Enhance (RIFE)', icon: '✨',
+    description: 'fal-ai/rife-v4.6-video ile kare enterpolasyonu ve video iyileştirme',
+    category: 'video-enhance', subcategory: 'smooth',
+    inputs: [vidR('Video')], outputs: [vid('Video')],
+    provider: 'fal.ai', creditCost: 8, status: 'active', isNew: true,
+  },
   {
     id: 'topazVideoUpscaleNode', label: 'Topaz Video Upscaler', icon: '🔭',
     description: 'Topaz AI ile video çözünürlük artırma',

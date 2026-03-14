@@ -68,6 +68,8 @@ export const CREDIT_COSTS: Record<string, number> = {
   'elevenlabs': 5, 'openai-tts': 3, 'fal-tts': 2,
   // Image Edit
   'flux-kontext-edit': 15, 'remove-bg': 3, 'upscale-esrgan': 5, 'flux-fill-pro': 12,
+  // Video Edit
+  'fal-ai/latentsync': 20, 'fal-ai/wan/v2v': 25, 'fal-ai/video-upscaler': 10, 'fal-ai/rife-v4.6-video': 8,
 }
 
 export function getCreditCost(model: string): number {
@@ -410,6 +412,44 @@ export async function inpaintImage(params: {
     requestId: result.requestId,
     cost: 12,
   }
+}
+
+// ── Video Editing functions ──────────────────────────────────────────────────
+
+// Lip Sync
+export async function lipSyncVideo(params: { videoUrl: string; audioUrl: string }): Promise<{ videoUrl: string; requestId: string }> {
+  const result = await fal.subscribe('fal-ai/latentsync', {
+    input: { video_url: params.videoUrl, audio_url: params.audioUrl },
+    pollInterval: 3000,
+  }) as any
+  return { videoUrl: result.data?.video?.url || result.data?.output?.video_url || '', requestId: String(result.requestId || '') }
+}
+
+// Video to Video
+export async function videoToVideo(params: { videoUrl: string; prompt: string; strength?: number }): Promise<{ videoUrl: string; requestId: string }> {
+  const result = await fal.subscribe('fal-ai/wan/v2v', {
+    input: { video_url: params.videoUrl, prompt: params.prompt, strength: params.strength ?? 0.7 },
+    pollInterval: 3000,
+  }) as any
+  return { videoUrl: result.data?.video?.url || result.data?.output?.video_url || '', requestId: String(result.requestId || '') }
+}
+
+// Video Upscale
+export async function upscaleVideo(params: { videoUrl: string; scale?: number }): Promise<{ videoUrl: string; requestId: string }> {
+  const result = await fal.subscribe('fal-ai/video-upscaler', {
+    input: { video_url: params.videoUrl, scale: params.scale ?? 2 },
+    pollInterval: 3000,
+  }) as any
+  return { videoUrl: result.data?.video?.url || result.data?.output?.video_url || '', requestId: String(result.requestId || '') }
+}
+
+// Video Enhance (frame interpolation / denoise)
+export async function enhanceVideo(params: { videoUrl: string; enhanceType?: string }): Promise<{ videoUrl: string; requestId: string }> {
+  const result = await fal.subscribe('fal-ai/rife-v4.6-video', {
+    input: { video_url: params.videoUrl },
+    pollInterval: 3000,
+  }) as any
+  return { videoUrl: result.data?.video?.url || result.data?.output?.video_url || '', requestId: String(result.requestId || '') }
 }
 
 export { fal }
